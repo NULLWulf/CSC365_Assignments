@@ -17,24 +17,31 @@ type Business struct {
 	Stars       float64 `json:"stars"`
 	ReviewCount int     `json:"review_count"`
 	IsOpen      int     `json:"is_open"`
-	Attributes  struct {
-		ByAppointmentOnly string `json:"ByAppointmentOnly"`
-	} `json:"attributes"`
-	Categories string      `json:"categories"`
-	Hours      interface{} `json:"hours"`
+	Categories  string  `json:"categories"`
 }
 
-func ReadJSONFile(filePath string) (Business, error) {
-	var business Business
+type Review struct {
+	ReviewID   string `json:"review_id"`
+	UserID     string `json:"user_id"`
+	BusinessID string `json:"business_id"`
+	Stars      int    `json:"stars"`
+	Useful     int    `json:"useful"`
+	Funny      int    `json:"funny"`
+	Cool       int    `json:"cool"`
+	Text       string `json:"text"`
+}
+
+func ReadJsonFile(filePath string) (interface{}, error) {
+	var jsonData interface{}
 	file, err := os.Open(filePath)
 	if err != nil {
-		return business, err
+		return jsonData, err
 	}
 	defer file.Close()
 
-	err = json.NewDecoder(file).Decode(&business)
+	err = json.NewDecoder(file).Decode(&jsonData)
 	if err != nil {
-		return business, err
+		return jsonData, err
 	}
-	return business, nil
+	return jsonData, nil
 }
