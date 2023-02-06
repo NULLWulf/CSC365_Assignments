@@ -31,11 +31,11 @@ type Review struct {
 	Text       string `json:"text"`
 }
 
-func ReadJsonFile(filePath string) (*interface{}, error) {
+func ReadJsonFile(filePath string) (interface{}, error) {
 	var jsonData interface{}
 	file, err := os.Open(filePath)
 	if err != nil {
-		return &jsonData, err
+		return jsonData, err
 	}
 	defer func(file *os.File) {
 		err := file.Close()
@@ -46,7 +46,7 @@ func ReadJsonFile(filePath string) (*interface{}, error) {
 
 	err = json.NewDecoder(file).Decode(&jsonData)
 	if err != nil {
-		return &jsonData, err
+		return jsonData, err
 	}
-	return &jsonData, nil
+	return jsonData, nil
 }
