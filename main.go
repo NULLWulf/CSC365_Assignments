@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	_ "github.com/gin-gonic/gin"
 	"github.com/julienschmidt/httprouter"
 	"github.com/kardianos/service"
 	"net/http"
@@ -9,6 +10,9 @@ import (
 )
 
 type program struct{}
+
+var business interface{}
+var review interface{}
 
 func main() {
 	fmt.Println(serviceName + " starting...")
@@ -26,7 +30,6 @@ func main() {
 	if err != nil {
 		fmt.Println("Cannot start: " + err.Error())
 	}
-
 }
 
 func (p *program) Start(service.Service) error {
@@ -70,4 +73,9 @@ func (p *program) run() {
 	}
 	fmt.Println(serviceName + " running")
 
+}
+
+func homepage(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	fmt.Println("Serving homepage")
+	http.ServeFile(writer, request, "./html/homepage.html")
 }
