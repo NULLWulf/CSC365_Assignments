@@ -51,6 +51,7 @@ func (p *program) run() {
 	router.ServeFiles("/js/*filepath", http.Dir("js"))
 	router.ServeFiles("/css/*filepath", http.Dir("css"))
 	router.GET("/", homepage)
+	router.GET("/api/v1/business/search", bizSearch)
 	err = http.ListenAndServe(":8080", router)
 	if err != nil {
 		fmt.Println("Problem starting service: " + err.Error())

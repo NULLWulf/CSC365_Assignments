@@ -10,3 +10,8 @@ func homepage(writer http.ResponseWriter, request *http.Request, params httprout
 	fmt.Println("Serving homepage")
 	http.ServeFile(writer, request, "./html/homepage.html")
 }
+
+func bizSearch(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	term := request.URL.Query().Get("q")
+	fmt.Println("Serving business search: " + term)
+}
