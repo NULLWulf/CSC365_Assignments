@@ -30,6 +30,9 @@ func main() {
 
 func (p *program) run() {
 	readBusinessesJson()
+	saveBusinessAsJsonArray()
+	readReviewsJsonScannner()
+	saveReviewsAsJsonArray()
 	router := httprouter.New()
 	router.ServeFiles("/js/*filepath", http.Dir("js"))
 	router.ServeFiles("/css/*filepath", http.Dir("css"))

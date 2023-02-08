@@ -53,7 +53,7 @@ func readBusinessesJson() {
 		if err != nil {
 			fmt.Println("Business ignored: ", err)
 		} else {
-			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") {
+			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
 				business.CategoriesArr = strings.Split(business.Categories, ", ")
 				Businesses = append(Businesses, business)
 				BusinessIdList = append(BusinessIdList, business.BusinessID)
@@ -82,10 +82,15 @@ func readReviewsJsonScannner() {
 		if err != nil {
 			fmt.Println("Review ignored: ", err)
 		} else {
-			Reviews = append(Reviews, review)
+			for _, businessId := range BusinessIdList {
+				if review.BusinessID == businessId {
+					Reviews = append(Reviews, review)
+					break
+				}
+			}
 		}
 		i++
-		if i == 1000 {
+		if i == 25000 {
 			break
 		}
 	}
@@ -97,6 +102,34 @@ func readReviewsJsonScannner() {
 	fmt.Println("Reviews Loaded: ", len(Reviews))
 }
 
-func delimitCategories(categories string) []string {
-	return strings.Split(categories, ",")
+func saveBusinessAsJsonArray() {
+	file, err := os.Create("businesses.json")
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer file.Close()
+
+	enc := json.NewEncoder(file)
+	enc.SetIndent("", "  ")
+	err = enc.Encode(Businesses)
+	if err != nil {
+		fmt.Println("Error encoding json:", err)
+	}
+}
+
+func saveReviewsAsJsonArray() {
+	file, err := os.Create("reviews.json")
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer file.Close()
+
+	enc := json.NewEncoder(file)
+	enc.SetIndent("", "  ")
+	err = enc.Encode(Reviews)
+	if err != nil {
+		fmt.Println("Error encoding json:", err)
+	}
 }
