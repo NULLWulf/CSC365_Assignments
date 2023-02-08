@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -41,7 +42,7 @@ func readBusinessesJson() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	categoryFrequencyTable := make(map[string]int)
 	// Loop through the file, decoding each business object and adding it to the array
 	for i := 0; i < len(file); {
 		var business Business
@@ -53,16 +54,30 @@ func readBusinessesJson() {
 		if err != nil {
 			fmt.Println("Business ignored: ", err)
 		} else {
-			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
+			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 200 {
 				business.CategoriesArr = strings.Split(business.Categories, ", ")
 				Businesses = append(Businesses, business)
 				BusinessIdList = append(BusinessIdList, business.BusinessID)
+				for _, category := range business.CategoriesArr {
+					categoryFrequencyTable[category]++
+				}
 			}
 		}
 		i = j + 1
 	}
 	fmt.Println("Businesses Loaded: ", len(Businesses))
-	fmt.Println(Businesses[1:10])
+	var categories []string
+	for category := range categoryFrequencyTable {
+		categories = append(categories, category)
+	}
+	sort.Slice(categories, func(i, j int) bool {
+		return categoryFrequencyTable[categories[i]] > categoryFrequencyTable[categories[j]]
+	})
+
+	fmt.Println("Sorted Category Frequency:")
+	for _, category := range categories {
+		fmt.Println(category, ":", categoryFrequencyTable[category])
+	}
 }
 
 func readReviewsJsonScannner() {
@@ -85,11 +100,11 @@ func readReviewsJsonScannner() {
 			for _, businessId := range BusinessIdList {
 				if review.BusinessID == businessId {
 					Reviews = append(Reviews, review)
+					i++
 					break
 				}
 			}
 		}
-		i++
 		if i == 25000 {
 			break
 		}
