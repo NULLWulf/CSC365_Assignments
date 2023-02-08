@@ -29,7 +29,7 @@ func main() {
 }
 
 func (p *program) run() {
-	readReviewsJsonScannner()
+	readBusinessesJson()
 	router := httprouter.New()
 	router.ServeFiles("/js/*filepath", http.Dir("js"))
 	router.ServeFiles("/css/*filepath", http.Dir("css"))
