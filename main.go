@@ -29,30 +29,13 @@ func main() {
 }
 
 func (p *program) run() {
-	fmt.Println("Loading Business JSON data...")
-	business, err := ReadJsonFile(businessPath)
-	if err != nil {
-		fmt.Println("Failed to load Business JSON data: " + err.Error())
-	} else {
-		fmt.Println("Business JSON data loaded successfully")
-	}
-
-	fmt.Println("Loading Review JSON data...")
-	review, err := ReadJsonFile(reviewJsonPath)
-	if err != nil {
-		fmt.Println("Failed to load Review JSON data: " + err.Error())
-	} else {
-		fmt.Println("Review JSON data loaded successfully")
-	}
-
-	fmt.Println(business)
-	fmt.Println(review)
+	readReviewsJsonScannner()
 	router := httprouter.New()
 	router.ServeFiles("/js/*filepath", http.Dir("js"))
 	router.ServeFiles("/css/*filepath", http.Dir("css"))
 	router.GET("/", homepage)
 	router.GET("/api/v1/business/search", bizSearch)
-	err = http.ListenAndServe(":8080", router)
+	err := http.ListenAndServe(":8080", router)
 	if err != nil {
 		fmt.Println("Problem starting service: " + err.Error())
 		os.Exit(-1)
