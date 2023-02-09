@@ -34,9 +34,6 @@ type Review struct {
 // Businesses Initialize an array to store the businesses
 var Businesses []Business
 
-//var Reviews []Review
-//var BusinessIdList []string
-
 func readBusinessesJson() {
 	fmt.Println("Loading Business JSON data...")
 	// Read the file containing business information
@@ -56,7 +53,7 @@ func readBusinessesJson() {
 		if err != nil {
 			fmt.Println("Business ignored: ", err)
 		} else {
-			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 200 {
+			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
 				business.CategoriesArr = strings.Split(business.Categories, ", ")
 				Businesses = append(Businesses, business)
 				for _, category := range business.CategoriesArr {
@@ -75,7 +72,7 @@ func readBusinessesJson() {
 		return categoryFrequencyTable[categories[i]] > categoryFrequencyTable[categories[j]]
 	})
 
-	fmt.Println("Sorted Category Frequency:")
+	//fmt.Println("Sorted Category Frequency:")
 	for _, category := range categories {
 		fmt.Println(category, ":", categoryFrequencyTable[category])
 	}
@@ -101,7 +98,7 @@ func readReviewsJsonScannner() {
 		} else {
 			for i, b := range Businesses {
 				if review.BusinessID == b.BusinessID {
-					println("Review found for business: ", b.Name)
+					//println("Review found for business: ", b.Name)
 					b.Reviews = append(b.Reviews, review)
 					Businesses[i].Reviews = append(Businesses[i].Reviews, review)
 					t++
@@ -118,7 +115,9 @@ func readReviewsJsonScannner() {
 		fmt.Println("Error reading file:", err)
 	}
 
-	fmt.Println("Reviews Loaded: ")
+	fmt.Println("Reviews Loading.  Businesses before: ", len(Businesses))
+	RemoveNullReviewsFromBusinesses()
+	fmt.Println("Reviews Loaded.  Businesses with reviews: ", len(Businesses))
 }
 
 func saveBusinessAsJsonArray() {
@@ -137,18 +136,19 @@ func saveBusinessAsJsonArray() {
 	}
 }
 
-//func saveReviewsAsJsonArray() {
-//	file, err := os.Create("reviews.json")
-//	if err != nil {
-//		fmt.Println("Error creating file:", err)
-//		return
-//	}
-//	defer file.Close()
-//
-//	enc := json.NewEncoder(file)
-//	enc.SetIndent("", "  ")
-//	err = enc.Encode(Reviews)
-//	if err != nil {
-//		fmt.Println("Error encoding json:", err)
-//	}
-//}
+func (b Business) ToJson() []byte {
+	businessJson, _ := json.Marshal(b)
+	return businessJson
+}
+
+// RemoveNullReviewsFromBusinesses removes businesses with no reviews from the Businesses array by
+// creating a new array and copying over the businesses with reviews
+func RemoveNullReviewsFromBusinesses() {
+	var newBusinesses []Business
+	for _, b := range Businesses {
+		if len(b.Reviews) != 0 {
+			newBusinesses = append(newBusinesses, b)
+		}
+	}
+	Businesses = newBusinesses
+}

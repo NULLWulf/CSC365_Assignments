@@ -36,6 +36,7 @@ func (p *program) run() {
 	router := httprouter.New()
 	router.ServeFiles("/js/*filepath", http.Dir("js"))
 	router.ServeFiles("/css/*filepath", http.Dir("css"))
+	router.GET("/random", returnRandomBusinessJson)
 	router.GET("/", homepage)
 	//router.GET('searc/:query', search')
 	err := http.ListenAndServe(":8080", router)
@@ -44,11 +45,7 @@ func (p *program) run() {
 		os.Exit(-1)
 	}
 	fmt.Println(serviceName + " running")
-
-}
-
-func search(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	//query := request.URL.Query().Get("query")
+	fmt.Println("Finished")
 }
 
 func (p *program) Start(service.Service) error {
