@@ -30,14 +30,14 @@ func main() {
 
 func (p *program) run() {
 	readBusinessesJson()
-	saveBusinessAsJsonArray()
 	readReviewsJsonScannner()
-	saveReviewsAsJsonArray()
+	saveBusinessAsJsonArray()
+
 	router := httprouter.New()
 	router.ServeFiles("/js/*filepath", http.Dir("js"))
 	router.ServeFiles("/css/*filepath", http.Dir("css"))
 	router.GET("/", homepage)
-	router.GET("/api/v1/business/search", bizSearch)
+	//router.GET('searc/:query', search')
 	err := http.ListenAndServe(":8080", router)
 	if err != nil {
 		fmt.Println("Problem starting service: " + err.Error())
@@ -45,6 +45,10 @@ func (p *program) run() {
 	}
 	fmt.Println(serviceName + " running")
 
+}
+
+func search(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	//query := request.URL.Query().Get("query")
 }
 
 func (p *program) Start(service.Service) error {

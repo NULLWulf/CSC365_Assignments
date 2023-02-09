@@ -20,6 +20,7 @@ type Business struct {
 	IsOpen        int      `json:"is_open"`
 	Categories    string   `json:"categories"`
 	CategoriesArr []string `json:"categories_arr" nil:"true"`
+	Reviews       []Review `json:"reviews"`
 }
 
 type Review struct {
@@ -32,8 +33,9 @@ type Review struct {
 
 // Businesses Initialize an array to store the businesses
 var Businesses []Business
-var Reviews []Review
-var BusinessIdList []string
+
+//var Reviews []Review
+//var BusinessIdList []string
 
 func readBusinessesJson() {
 	fmt.Println("Loading Business JSON data...")
@@ -57,7 +59,6 @@ func readBusinessesJson() {
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 200 {
 				business.CategoriesArr = strings.Split(business.Categories, ", ")
 				Businesses = append(Businesses, business)
-				BusinessIdList = append(BusinessIdList, business.BusinessID)
 				for _, category := range business.CategoriesArr {
 					categoryFrequencyTable[category]++
 				}
@@ -89,23 +90,26 @@ func readReviewsJsonScannner() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	i := 0
+	t := 0
 	for scanner.Scan() {
 
 		var review Review
+
 		err := json.Unmarshal(scanner.Bytes(), &review)
 		if err != nil {
 			fmt.Println("Review ignored: ", err)
 		} else {
-			for _, businessId := range BusinessIdList {
-				if review.BusinessID == businessId {
-					Reviews = append(Reviews, review)
-					i++
+			for i, b := range Businesses {
+				if review.BusinessID == b.BusinessID {
+					println("Review found for business: ", b.Name)
+					b.Reviews = append(b.Reviews, review)
+					Businesses[i].Reviews = append(Businesses[i].Reviews, review)
+					t++
 					break
 				}
 			}
 		}
-		if i == 25000 {
+		if t == 25000 {
 			break
 		}
 	}
@@ -114,7 +118,7 @@ func readReviewsJsonScannner() {
 		fmt.Println("Error reading file:", err)
 	}
 
-	fmt.Println("Reviews Loaded: ", len(Reviews))
+	fmt.Println("Reviews Loaded: ")
 }
 
 func saveBusinessAsJsonArray() {
@@ -133,18 +137,18 @@ func saveBusinessAsJsonArray() {
 	}
 }
 
-func saveReviewsAsJsonArray() {
-	file, err := os.Create("reviews.json")
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return
-	}
-	defer file.Close()
-
-	enc := json.NewEncoder(file)
-	enc.SetIndent("", "  ")
-	err = enc.Encode(Reviews)
-	if err != nil {
-		fmt.Println("Error encoding json:", err)
-	}
-}
+//func saveReviewsAsJsonArray() {
+//	file, err := os.Create("reviews.json")
+//	if err != nil {
+//		fmt.Println("Error creating file:", err)
+//		return
+//	}
+//	defer file.Close()
+//
+//	enc := json.NewEncoder(file)
+//	enc.SetIndent("", "  ")
+//	err = enc.Encode(Reviews)
+//	if err != nil {
+//		fmt.Println("Error encoding json:", err)
+//	}
+//}
