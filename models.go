@@ -8,6 +8,8 @@ import (
 	"os"
 	"sort"
 	"strings"
+
+	"github.com/bbalet/stopwords"
 )
 
 type Business struct {
@@ -56,6 +58,7 @@ func readBusinessesJson() {
 		} else {
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
 				business.CategoriesArr = strings.Split(business.Categories, ", ")
+				business.ReviewTermsCount = make(map[string]int)
 				Businesses = append(Businesses, business)
 				for _, category := range business.CategoriesArr {
 					categoryFrequencyTable[category]++
@@ -99,9 +102,13 @@ func readReviewsJsonScannner() {
 		} else {
 			for i, b := range Businesses {
 				if review.BusinessID == b.BusinessID {
-					//println("Review found for business: ", b.Name)
-					b.Reviews = append(b.Reviews, review)
-					Businesses[i].Reviews = append(Businesses[i].Reviews, review)
+					// //println("Review found for business: ", b.Name)
+					// b.Reviews = append(b.Reviews, review)
+					// Businesses[i].Reviews = append(Businesses[i].Reviews, review)
+					tTerms := strings.Split(stopwords.CleanString(review.Text, "en", true), " ")
+					for _, term := range tTerms {
+						Businesses[i].ReviewTermsCount[term]++
+					}
 					t++
 					break
 				}
@@ -147,7 +154,7 @@ func (b Business) ToJson() []byte {
 func RemoveNullReviewsFromBusinesses() {
 	var newBusinesses []Business
 	for _, b := range Businesses {
-		if len(b.Reviews) != 0 {
+		if len(b.ReviewTermsCount) != 0 {
 			newBusinesses = append(newBusinesses, b)
 		}
 	}
