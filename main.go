@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"github.com/kardianos/service"
 	"net/http"
 	"os"
+
+	"github.com/julienschmidt/httprouter"
+	"github.com/kardianos/service"
 )
 
 type program struct{}
@@ -32,6 +33,7 @@ func (p *program) run() {
 	readBusinessesJson()
 	readReviewsJsonScannner()
 	saveBusinessAsJsonArray()
+	fmt.Println("Businesses loaded: ", len(Businesses))
 
 	router := httprouter.New()
 	router.ServeFiles("/js/*filepath", http.Dir("js"))

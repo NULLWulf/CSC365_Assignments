@@ -11,16 +11,17 @@ import (
 )
 
 type Business struct {
-	BusinessID    string   `json:"business_id"`
-	Name          string   `json:"name"`
-	City          string   `json:"city"`
-	State         string   `json:"state"`
-	Stars         float32  `json:"stars"`
-	ReviewCount   int      `json:"review_count"`
-	IsOpen        int      `json:"is_open"`
-	Categories    string   `json:"categories"`
-	CategoriesArr []string `json:"categories_arr" nil:"true"`
-	Reviews       []Review `json:"reviews"`
+	BusinessID       string         `json:"business_id"`
+	Name             string         `json:"name"`
+	City             string         `json:"city"`
+	State            string         `json:"state"`
+	Stars            float32        `json:"stars"`
+	ReviewCount      int            `json:"review_count"`
+	IsOpen           int            `json:"is_open"`
+	Categories       string         `json:"categories"`
+	CategoriesArr    []string       `json:"categories_arr" nil:"true"`
+	Reviews          []Review       `json:"reviews"`
+	ReviewTermsCount map[string]int `json:"review_terms_count"`
 }
 
 type Review struct {
