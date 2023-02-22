@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -19,7 +18,7 @@ func homepage(writer http.ResponseWriter, request *http.Request, params httprout
 // in this case the list is appended to a drop down menu.
 func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	businesses := getRandomBusinessList(10)
-	fmt.Printf("Serving random businesses: %d", len(businesses))
+	log.Printf("Serving random businesses: %d", len(businesses))
 
 	jsonBytes, err := json.Marshal(businesses)
 	if err != nil {
