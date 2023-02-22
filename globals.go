@@ -49,3 +49,10 @@ var (
 	RelatibilityMod       = 0.10
 	TermKeyMap            = make(map[string][]string)
 )
+
+const (
+	serviceName        = "Yelp Similarity Web App"
+	serviceDescription = "Yep Similarity Web App powered by probabilistic data structures"
+	businessPath       = "./json/yelp_academic_dataset_business.json"
+	reviewJsonPath     = "./json/yelp_academic_dataset_review.json"
+)
