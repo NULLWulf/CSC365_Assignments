@@ -7,17 +7,6 @@ import (
 	"sort"
 )
 
-var (
-	RelatibilityMod = .10 // The inreases/decreases the top percentage of terms to be considered relevant
-)
-
-type bizTuple struct {
-	BusinessName string `json:"business_name"`
-	BusinessID   string `json:"business_id"`
-}
-
-var TermKeyMap map[string][]string
-
 // RemoveNullReviewsFromBusinesses removes businesses with no reviews from the Businesses array by
 // creating a new array and copying over the businesses with reviews
 // It also calculates the term frequency for each term in the reviews of the business
@@ -33,10 +22,10 @@ func removeNullReviewsCalculateFrequency() {
 			for _, count := range b.ReviewTermsCount {
 				tCount += count
 			}
-			b.termFrequency = make(map[string]float32)
+			b.TermFrequency = make(map[string]float32)
 			for k, v := range b.ReviewTermsCount {
 				// Calculate Term Frequency
-				b.termFrequency[k] = float32(v) / float32(tCount)
+				b.TermFrequency[k] = float32(v) / float32(tCount)
 				// Increment Document Frequency should only be done once per document (business)
 				tdf[k]++
 			}
@@ -54,7 +43,7 @@ func removeNullReviewsCalculateFrequency() {
 func calculatetfIdf() {
 	for i, b := range Businesses {
 		b.TfIdf = make(map[string]float32)
-		for k, v := range b.termFrequency {
+		for k, v := range b.TermFrequency {
 			b.TfIdf[k] = v * float32(math.Log(float64(len(Businesses))/float64(TermDocumentFrequency[k])))
 		}
 		Businesses[i] = b
@@ -65,11 +54,6 @@ func calculatetfIdf() {
 
 func sortTfIdf() {
 	log.Println("Sorting TF-IDF...")
-
-	type mapEntry struct {
-		key   string
-		value float32
-	}
 
 	tempBizMap := make(map[string]Business)
 	// Sort the TfIdf maps in each Business in descending order of value

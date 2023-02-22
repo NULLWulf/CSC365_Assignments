@@ -8,8 +8,7 @@ import (
 	"github.com/kardianos/service"
 )
 
-type program struct{}
-
+// Program instantation
 func main() {
 	log.Println(serviceName + " starting...")
 	serviceConfig := &service.Config{
@@ -28,17 +27,18 @@ func main() {
 	}
 }
 
+// Main program loop
 func (p *program) run() {
-	router := httprouter.New()
-	router.GET("/", homepage)
-	router.GET("/random", returnRandomBusinessListJson)
-	router.GET("/relatable", getRelatableBusinesses)
-	readBusinessesJson()
-	readReviewsJsonScannner()
-	removeNullReviewsCalculateFrequency()
-	calculatetfIdf()
-	sortTfIdf()
-	addMostRelevantTermsKeyMap()
+	router := httprouter.New()                          // Create HTTP router
+	router.GET("/", homepage)                           // Services index.html
+	router.GET("/random", returnRandomBusinessListJson) // Handler for random Businesses list
+	router.GET("/relatable", getRelatableBusinesses)    // Handler for Relatable Businesses
+	readBusinessesJson()                                // Review Business JSON data and filter
+	readReviewsJsonScannner()                           // Rview Review JSON and generate term count tables
+	removeNullReviewsCalculateFrequency()               // REmove Businesses with no reviews and calculate term document frequency
+	calculatetfIdf()                                    // Iterate through businesses and calculate td-idf for terms
+	sortTfIdf()                                         // Sort tf-idf map within the Businneses
+	addMostRelevantTermsKeyMap()                        // Add top x percent of relatable terms to global key map
 	err := http.ListenAndServe(":7500", router)
 
 	if err != nil {

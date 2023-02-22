@@ -8,16 +8,17 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// homepage Serves homepage (index.html)
 func homepage(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	fmt.Println("Serving homepage")
 	http.ServeFile(writer, request, "./html/homepage.html")
 }
 
+// Gets a random list of up 10 businesses and returns to front end
+// in this case the list is appended to a drop down menu.
 func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	fmt.Println("Serving random business")
 	businesses := getRandomBusinessList(10)
-
-	// marshal the array of structs to JSON
+	fmt.Printf("Serving random businesses: %d", len(businesses))
 
 	jsonBytes, err := json.Marshal(businesses)
 	if err != nil {
@@ -25,7 +26,6 @@ func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	// write the JSON response to the client
 	writer.Header().Set("Content-Type", "application/json")
 	_, err = writer.Write(jsonBytes)
 	if err != nil {
@@ -34,12 +34,13 @@ func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Requ
 	}
 }
 
+// Takes businesses id received from front end and calls find ofRelatableBusiness functions
+// and returns
 func getRelatableBusinesses(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	// get the business_id parameter from the query string
 	businessID := request.URL.Query().Get("business_id")
-	// get the relatable businesses
+
 	relatableBusinesses := findRelatableBusinesses(businessID)
-	// make bizTouple array
+	// make bizTouple array of two businesses
 	bizTouples := make([]bizTuple, 0)
 	for _, b := range relatableBusinesses {
 		// append a new bizTuple to the bizTouples array
@@ -49,7 +50,6 @@ func getRelatableBusinesses(writer http.ResponseWriter, request *http.Request, p
 		})
 	}
 
-	// marshal the relatableBusinesses map to JSON and write to the response
 	jsonBytes, err := json.Marshal(bizTouples)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
