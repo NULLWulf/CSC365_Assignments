@@ -131,9 +131,20 @@ func findRelatableBusinesses(businessID string) []Business {
 		tryKey := relatableKeys[rand.Intn(len(relatableKeys)-1)]
 		for _, bID := range TermKeyMap[tryKey] { // term key not set as a global variable at this point
 			if bID != businessID {
-				relatableBusinesses = append(relatableBusinesses, Businesses[bID])
-				found++
-				break
+				// check if key is already in relatableBusinesses
+				keyExists := false
+				for _, b := range relatableBusinesses {
+					if b.BusinessID == bID {
+						keyExists = true
+						break
+					}
+				}
+				// add business to relatableBusinesses if key is not already in it
+				if !keyExists {
+					relatableBusinesses = append(relatableBusinesses, Businesses[bID])
+					found++
+					break
+				}
 			}
 		}
 	}

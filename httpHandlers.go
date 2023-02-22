@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -10,7 +11,7 @@ import (
 
 // homepage Serves homepage (index.html)
 func homepage(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	fmt.Println("Serving homepage")
+	log.Println("Serving homepage")
 	http.ServeFile(writer, request, "./html/homepage.html")
 }
 

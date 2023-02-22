@@ -7,9 +7,23 @@
     <title>Yelp Similarity Tester</title>
   </head>
   <body>
-    <h1>Random Business List</h1>
-    <select id="businesses"></select>
-    <p id="relatable"></p>
+    <div style="width: 50%; font-size: 14px;"">
+      <h1>Yelp Dataset Recommendation Engine</h1>
+      <p style="font-size: 14px">
+        Select an item from the dropdown to get a randomly related business. The
+        relation is determined by a correlation of terms found within the
+        businesses' reviews. (Both the selected, and 'related' businesses)
+      </p>
+      <select id="businesses"></select>
+      <p id="relatable">
+        Related Business 1: <span id="related1"></span><br />
+        Related Business 2: <span id="related2"></span>
+      </p>
+      <h2>Calculation Process</h2>
+      <ul>
+        <li><b>1) Pull in JSON DATA:</b>  We start by loading a large JSON dataset of Businesses.  In this case </li>
+      </ul>
+    </div>
 
     <script>
       let select = document.getElementById("businesses");
@@ -38,8 +52,6 @@
           })
           .catch((error) => console.error(error));
       }
-
-      // add event listener to select element
       select.addEventListener("change", () => {
         let selectedOption = select.options[select.selectedIndex];
         let businessId = selectedOption.querySelector(
@@ -48,10 +60,12 @@
         fetch(`/relatable?business_id=${businessId}`)
           .then((response) => response.json())
           .then((data) => {
-            let relatable = data
-              .map((business) => business.business_name)
-              .join(", ");
-            document.getElementById("relatable").textContent = relatable;
+            let relatable = data.slice(0, 2);
+            for (let i = 0; i < relatable.length; i++) {
+              let relatedName = relatable[i].business_name;
+              document.getElementById(`related${i + 1}`).textContent =
+                relatedName;
+            }
           })
           .catch((error) => console.error(error));
       });
