@@ -7,9 +7,6 @@ import (
 	"sort"
 )
 
-// Make a map of strings to floats
-//
-
 // RemoveNullReviewsFromBusinesses removes businesses with no reviews from the Businesses array by
 // creating a new array and copying over the businesses with reviews
 // It also calculates the term frequency for each term in the reviews of the business
@@ -25,11 +22,9 @@ func removeNullReviewsCalculateFrequency() {
 			for _, count := range b.ReviewTermsCount {
 				tCount += count
 			}
-			// Replace b.TermFrequency with actual hashmap
-			b.TermFrequency = make(map[string]float32) // <-------------
+			b.TermFrequency = make(map[string]float32)
 			for k, v := range b.ReviewTermsCount {
 				// Calculate Term Frequency
-				//
 				b.TermFrequency[k] = float32(v) / float32(tCount)
 				// Increment Document Frequency should only be done once per document (business)
 				tdf[k]++
@@ -117,6 +112,7 @@ func getRandomBusinessList(n int) []bizTuple {
 		keyMapIdx := BusinessKeyMap[r]
 		randomBizList = append(randomBizList, bizTuple{Businesses[keyMapIdx].Name, Businesses[keyMapIdx].BusinessID})
 	}
+	log.Printf("Random businesses: %v\n", randomBizList)
 	return randomBizList
 }
 
