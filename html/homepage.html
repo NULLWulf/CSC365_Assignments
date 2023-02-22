@@ -31,17 +31,17 @@
           least 100 are added to the map. (This value can be tweaked globally on
           the backend
         </li>
-        <li><b>3) Iterate Through Review JSON data:  <b>Then the Review JSON file is iterated through line by line.  
+        <li><b>3) Iterate Through Review JSON data:  </b></li>b>Then the Review JSON file is iterated through line by line.  
           Because this JSON file is so large it becomes neccesary to buffer it vs pull the entire text contents into memory
           as I did with the Business JSON.  A globally adjustable limit is set to 25,000 reviews.
         </li>
-        <li><b>4) Tokenize/Generate Raw Count:  <b> </li>For each review the Business map is iterated through to attempt to find
+        <li><b>4) Tokenize/Generate Raw Count:  </li></b>For each review the Business map is iterated through to attempt to find
           a match.  When the Business ID of a Review and Business match, then Review's text is then cleaned of stop words,
           split into an array by spaces, and a raw term frequency count is appended to the respective business RawTermFrequency map.
           This is a map that stores the term frequency count for a term across <i>all</i> of it's respective reviews.  Since 
           I am only getting term frequency counts for businesses, the review data itself is volatile and does not get directly
           associated with the Business object.
-          <li><br>5) Remove null review businesses and </li>
+          <li><b>5) Remove null review businesses and <b></li>
       </ul>
     </div>
 
