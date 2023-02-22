@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"sort"
@@ -13,17 +12,20 @@ import (
 )
 
 type Business struct {
-	BusinessID       string         `json:"business_id"`
-	Name             string         `json:"name"`
-	City             string         `json:"city"`
-	State            string         `json:"state"`
-	Stars            float32        `json:"stars"`
-	ReviewCount      int            `json:"review_count"`
-	IsOpen           int            `json:"is_open"`
-	Categories       string         `json:"categories"`
-	CategoriesArr    []string       `json:"categories_arr" nil:"true"`
-	Reviews          []Review       `json:"reviews"`
-	ReviewTermsCount map[string]int `json:"review_terms_count"`
+	BusinessID       string             `json:"business_id"`
+	Name             string             `json:"name"`
+	City             string             `json:"city"`
+	State            string             `json:"state"`
+	Stars            float32            `json:"stars"`
+	ReviewCount      int                `json:"review_count"`
+	IsOpen           int                `json:"is_open"`
+	Categories       string             `json:"categories"`
+	CategoriesArr    []string           `json:"categories_arr" nil:"true"`
+	ReviewTermsCount map[string]int     `json:"review_terms_count"`
+	TermCountTotal   int                `json:"term_count_total"`
+	termFrequency    map[string]float32 `json:"term_frequency"`
+
+	TfIdf map[string]float32 `json:"tf_idf"`
 }
 
 type Review struct {
@@ -36,9 +38,11 @@ type Review struct {
 
 // Businesses Initialize an array to store the businesses
 var Businesses []Business
+var TermDocumentFrequency map[string]int
+var ReviewTotal = 25000
 
 func readBusinessesJson() {
-	fmt.Println("Loading Business JSON data...")
+	log.Println("Loading Business JSON data...")
 	// Read the file containing business information
 	file, err := os.ReadFile(businessPath)
 	if err != nil {
@@ -54,7 +58,7 @@ func readBusinessesJson() {
 		}
 		err := json.Unmarshal(file[i:j], &business)
 		if err != nil {
-			fmt.Println("Business ignored: ", err)
+			log.Println("Business ignored: ", err)
 		} else {
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
 				business.CategoriesArr = strings.Split(business.Categories, ", ")
@@ -67,7 +71,7 @@ func readBusinessesJson() {
 		}
 		i = j + 1
 	}
-	fmt.Println("Businesses Loaded: ", len(Businesses))
+	log.Println("Businesses Loaded: ", len(Businesses))
 	var categories []string
 	for category := range categoryFrequencyTable {
 		categories = append(categories, category)
@@ -76,16 +80,14 @@ func readBusinessesJson() {
 		return categoryFrequencyTable[categories[i]] > categoryFrequencyTable[categories[j]]
 	})
 
-	//fmt.Println("Sorted Category Frequency:")
-	for _, category := range categories {
-		fmt.Println(category, ":", categoryFrequencyTable[category])
-	}
 }
 
 func readReviewsJsonScannner() {
+	log.Println("Reading review JSON data...")
+
 	file, err := os.Open(reviewJsonPath)
 	if err != nil {
-		fmt.Println("Error opening file:", err)
+		log.Println("Error opening file:", err)
 		return
 	}
 	defer file.Close()
@@ -98,13 +100,10 @@ func readReviewsJsonScannner() {
 
 		err := json.Unmarshal(scanner.Bytes(), &review)
 		if err != nil {
-			fmt.Println("Review ignored: ", err)
+			log.Println("Review ignored: ", err)
 		} else {
 			for i, b := range Businesses {
 				if review.BusinessID == b.BusinessID {
-					// //println("Review found for business: ", b.Name)
-					// b.Reviews = append(b.Reviews, review)
-					// Businesses[i].Reviews = append(Businesses[i].Reviews, review)
 					tTerms := strings.Split(stopwords.CleanString(review.Text, "en", true), " ")
 					for _, term := range tTerms {
 						Businesses[i].ReviewTermsCount[term]++
@@ -114,24 +113,22 @@ func readReviewsJsonScannner() {
 				}
 			}
 		}
-		if t == 25000 {
+		if t == ReviewTotal {
 			break
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading file:", err)
+		log.Println("Error reading file:", err)
 	}
 
-	fmt.Println("Reviews Loading.  Businesses before: ", len(Businesses))
-	RemoveNullReviewsFromBusinesses()
-	fmt.Println("Reviews Loaded.  Businesses with reviews: ", len(Businesses))
+	log.Printf("Reviews Loading: %d.  Businesses before removal of nulls: %d", ReviewTotal, len(Businesses))
 }
 
 func saveBusinessAsJsonArray() {
 	file, err := os.Create("businesses.json")
 	if err != nil {
-		fmt.Println("Error creating file:", err)
+		log.Println("Error creating file:", err)
 		return
 	}
 	defer file.Close()
@@ -140,23 +137,11 @@ func saveBusinessAsJsonArray() {
 	enc.SetIndent("", "  ")
 	err = enc.Encode(Businesses)
 	if err != nil {
-		fmt.Println("Error encoding json:", err)
+		log.Println("Error encoding json:", err)
 	}
 }
 
 func (b Business) ToJson() []byte {
 	businessJson, _ := json.Marshal(b)
 	return businessJson
-}
-
-// RemoveNullReviewsFromBusinesses removes businesses with no reviews from the Businesses array by
-// creating a new array and copying over the businesses with reviews
-func RemoveNullReviewsFromBusinesses() {
-	var newBusinesses []Business
-	for _, b := range Businesses {
-		if len(b.ReviewTermsCount) != 0 {
-			newBusinesses = append(newBusinesses, b)
-		}
-	}
-	Businesses = newBusinesses
 }
