@@ -36,8 +36,9 @@ func (p *program) run() {
 	sortTfIdf()
 	a := addMostRelevantTermsKeyMap()
 	log.Printf("%v", len(a))
-	log.Print(getRandomBusiness(10))
-	log.Println(getRandomBusiness(5))
+	// log.Print(getRandomBusiness(10))
+	// log.Println(getRandomBusiness(5))
+	log.Printf("%v", findRelatableBusinesses("gqMRM12j5mder76t3bPxJw"))
 
 	router := httprouter.New()
 	router.ServeFiles("/js/*filepath", http.Dir("js"))

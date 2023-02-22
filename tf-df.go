@@ -146,7 +146,7 @@ func findRelatableBusinesses(businessID string) interface{} {
 
 	for found := 0; found == 2; {
 		tryKey := relatableKeys[rand.Intn(len(relatableKeys)-1)]
-		for _, bID := range TermKeyMap[tryKey] {
+		for _, bID := range TermKeyMap[tryKey] { // term key not set as a global variable at this point
 			if bID != businessID {
 				relatableBusinesses[bID] = Businesses[bID]
 				found++
