@@ -142,16 +142,16 @@ func getRandomBusinessList(n int) []bizTuple {
 	return randomBizList
 }
 
-func findRelatableBusinesses(businessID string) interface{} {
+func findRelatableBusinesses(businessID string) []Business {
 	log.Println("Finding relatable businesses...")
-	relatableKeys := getRelatableByKey(businessID)   // keys from this business
-	relatableBusinesses := make(map[string]Business) // leys to store matchinf relatable businesses by terms
+	relatableKeys := getRelatableByKey(businessID) // keys from this business
+	relatableBusinesses := make([]Business, 0, 2)  // 2 businesses to return
 
 	for found := 0; found < 2; {
 		tryKey := relatableKeys[rand.Intn(len(relatableKeys)-1)]
 		for _, bID := range TermKeyMap[tryKey] { // term key not set as a global variable at this point
 			if bID != businessID {
-				relatableBusinesses[bID] = Businesses[bID]
+				relatableBusinesses = append(relatableBusinesses, Businesses[bID])
 				found++
 				break
 			}

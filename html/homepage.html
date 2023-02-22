@@ -9,9 +9,11 @@
   <body>
     <h1>Random Business List</h1>
     <select id="businesses"></select>
+    <p id="relatable"></p>
 
     <script>
-      // function to get random business list and populate select element    <script>
+      let select = document.getElementById("businesses");
+
       // function to get random business list and populate select element
       function getBusinessList() {
         fetch("/random")
@@ -22,18 +24,37 @@
               (business) => business.business_name.trim() !== ""
             );
             // populate select element
-            let select = document.getElementById("businesses");
             businesses.forEach((business) => {
               let option = document.createElement("option");
               option.value = business.business_name;
               option.text = business.business_name;
+              let input = document.createElement("input");
+              input.type = "hidden";
+              input.name = "business_id";
+              input.value = business.business_id;
+              option.appendChild(input);
               select.add(option);
             });
           })
           .catch((error) => console.error(error));
       }
 
-      // call g
+      // add event listener to select element
+      select.addEventListener("change", () => {
+        let selectedOption = select.options[select.selectedIndex];
+        let businessId = selectedOption.querySelector(
+          '[name="business_id"]'
+        ).value;
+        fetch(`/relatable?business_id=${businessId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            let relatable = data
+              .map((business) => business.business_name)
+              .join(", ");
+            document.getElementById("relatable").textContent = relatable;
+          })
+          .catch((error) => console.error(error));
+      });
 
       // call getBusinessList on page load
       window.onload = getBusinessList;

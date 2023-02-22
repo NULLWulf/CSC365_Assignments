@@ -30,10 +30,9 @@ func main() {
 
 func (p *program) run() {
 	router := httprouter.New()
-	router.ServeFiles("/js/*filepath", http.Dir("js"))
-	router.ServeFiles("/css/*filepath", http.Dir("css"))
 	router.GET("/", homepage)
 	router.GET("/random", returnRandomBusinessListJson)
+	router.GET("/relatable", getRelatableBusinesses)
 	readBusinessesJson()
 	readReviewsJsonScannner()
 	removeNullReviewsCalculateFrequency()
