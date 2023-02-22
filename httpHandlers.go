@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -17,10 +18,23 @@ func bizSearch(writer http.ResponseWriter, request *http.Request, params httprou
 	fmt.Println("Serving business search: " + term)
 }
 
-// func returnRandomBusinessJson(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-// 	fmt.Println("Serving random business")
-// 	_, err := writer.Write([]byte(Businesses[rand.Intn(len(Businesses)-1)].ToJson()))
-// 	if err != nil {
-// 		return
-// 	}
-// }
+func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	fmt.Println("Serving random business")
+	businesses := getRandomBusinessList(10)
+
+	// marshal the array of structs to JSON
+
+	jsonBytes, err := json.Marshal(businesses)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// write the JSON response to the client
+	writer.Header().Set("Content-Type", "application/json")
+	_, err = writer.Write(jsonBytes)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}

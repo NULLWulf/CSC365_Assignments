@@ -1,25 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <link rel="stylesheet" href="../css/homepage.css">
+  <head>
+    <link rel="stylesheet" href="../css/homepage.css" />
     <script src="../js/homepage.js" defer></script>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Yelp Similarity Tester</title>
-</head>
-<body>
-<div class="main-content">
-    <div><h1>Yellzer Recommendation Engine</h1></div>
-    <div>
-        <div>
-            <label for="searchBox">Search Box </label><input type="text" id="searchBox">
-            <button id="searchButton">Search</button>
-        </div>
-        <div>
-            Suggestion One: <label id="label1">Some Value</label>
-            <br>
-            Suggestion Two:<label id="label2">Some value</label>
-        </div>
-    </div>
-</div>
-</body>
+  </head>
+  <body>
+    <h1>Random Business List</h1>
+    <select id="businesses"></select>
+
+    <script>
+      // function to get random business list and populate select element    <script>
+      // function to get random business list and populate select element
+      function getBusinessList() {
+        fetch("/random")
+          .then((response) => response.json())
+          .then((data) => {
+            // filter out empty values
+            let businesses = data.filter(
+              (business) => business.business_name.trim() !== ""
+            );
+            // populate select element
+            let select = document.getElementById("businesses");
+            businesses.forEach((business) => {
+              let option = document.createElement("option");
+              option.value = business.business_name;
+              option.text = business.business_name;
+              select.add(option);
+            });
+          })
+          .catch((error) => console.error(error));
+      }
+
+      // call g
+
+      // call getBusinessList on page load
+      window.onload = getBusinessList;
+    </script>
+  </body>
 </html>

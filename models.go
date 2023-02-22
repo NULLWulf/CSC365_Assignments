@@ -24,8 +24,7 @@ type Business struct {
 	ReviewTermsCount map[string]int     `json:"review_terms_count"`
 	TermCountTotal   int                `json:"term_count_total"`
 	termFrequency    map[string]float32 `json:"term_frequency"`
-
-	TfIdf map[string]float32 `json:"tf_idf"`
+	TfIdf            map[string]float32 `json:"tf_idf"`
 }
 
 type Review struct {

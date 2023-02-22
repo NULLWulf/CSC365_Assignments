@@ -29,23 +29,19 @@ func main() {
 }
 
 func (p *program) run() {
+	router := httprouter.New()
+	router.ServeFiles("/js/*filepath", http.Dir("js"))
+	router.ServeFiles("/css/*filepath", http.Dir("css"))
+	router.GET("/", homepage)
+	router.GET("/random", returnRandomBusinessListJson)
 	readBusinessesJson()
 	readReviewsJsonScannner()
 	removeNullReviewsCalculateFrequency()
 	calculatetfIdf()
 	sortTfIdf()
-	a := addMostRelevantTermsKeyMap()
-	log.Printf("%v", len(a))
-	// log.Print(getRandomBusiness(10))
-	// log.Println(getRandomBusiness(5))
-	log.Printf("%v", findRelatableBusinesses("gqMRM12j5mder76t3bPxJw"))
+	addMostRelevantTermsKeyMap()
+	err := http.ListenAndServe(":7500", router)
 
-	router := httprouter.New()
-	router.ServeFiles("/js/*filepath", http.Dir("js"))
-	router.ServeFiles("/css/*filepath", http.Dir("css"))
-	router.GET("/", homepage)
-	//router.GET('searc/:query', search')
-	err := http.ListenAndServe(":8080", router)
 	if err != nil {
 		log.Fatal("Problem starting service: " + err.Error())
 	}

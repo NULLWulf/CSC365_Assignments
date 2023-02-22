@@ -11,6 +11,11 @@ var (
 	RelatibilityMod = .10 // The inreases/decreases the top percentage of terms to be considered relevant
 )
 
+type bizTuple struct {
+	BusinessName string `json:"business_name"`
+	BusinessID   string `json:"business_id"`
+}
+
 var TermKeyMap map[string][]string
 
 // RemoveNullReviewsFromBusinesses removes businesses with no reviews from the Businesses array by
@@ -89,7 +94,8 @@ func sortTfIdf() {
 
 }
 
-func addMostRelevantTermsKeyMap() map[string][]string {
+func addMostRelevantTermsKeyMap() {
+	TermKeyMap = make(map[string][]string)
 	tempKeyMap := make(map[string][]string)
 	// TermKeyMap = make(map[string][]string)
 	for _, b := range Businesses {
@@ -103,7 +109,7 @@ func addMostRelevantTermsKeyMap() map[string][]string {
 		}
 	}
 	log.Printf("Most relevant terms added to key map, length: %d", len(tempKeyMap))
-	return tempKeyMap
+	TermKeyMap = tempKeyMap
 }
 
 // businessId is a key in this instance, keys are terms in the instance
@@ -124,11 +130,7 @@ func getRelatableByKey(key string) []string {
 	return tKeys
 }
 
-func getRandomBusiness(n int) interface{} {
-	type bizTuple struct {
-		businessName string
-		businessID   string
-	}
+func getRandomBusinessList(n int) []bizTuple {
 	randomBizList := make([]bizTuple, 0, n)
 	for i := 0; i < n; i++ {
 
@@ -141,10 +143,11 @@ func getRandomBusiness(n int) interface{} {
 }
 
 func findRelatableBusinesses(businessID string) interface{} {
+	log.Println("Finding relatable businesses...")
 	relatableKeys := getRelatableByKey(businessID)   // keys from this business
 	relatableBusinesses := make(map[string]Business) // leys to store matchinf relatable businesses by terms
 
-	for found := 0; found == 2; {
+	for found := 0; found < 2; {
 		tryKey := relatableKeys[rand.Intn(len(relatableKeys)-1)]
 		for _, bID := range TermKeyMap[tryKey] { // term key not set as a global variable at this point
 			if bID != businessID {
