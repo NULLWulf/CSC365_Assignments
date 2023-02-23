@@ -11,7 +11,7 @@ type Business struct {
 	Categories         string             `json:"categories"`
 	CategoriesArr      []string           `json:"categories_arr" nil:"true"`
 	ReviewTermsCount   map[string]int     `json:"review_terms_count"`
-	ReviewTermsCountHM HashMap            `json:"review_terms_count"`
+	ReviewTermsCountHM HashMap            `json:"review_terms_counthm"`
 	TermCountTotal     int                `json:"term_count_total"`
 	TermFrequency      map[string]float32 `json:"term_frequency"`
 	TfIdf              map[string]float32 `json:"tf_idf"`
