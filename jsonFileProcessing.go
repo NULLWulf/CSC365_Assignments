@@ -3,11 +3,10 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"github.com/bbalet/stopwords"
 	"log"
 	"os"
 	"strings"
-
-	"github.com/bbalet/stopwords"
 )
 
 // Reads Businesses JSON data
@@ -70,13 +69,29 @@ func readReviewsJsonScannner() {
 			continue
 		}
 
+		//for _, b := range Businesses {
+		//	if b.BusinessID == review.BusinessID {
+		//		// Remove stop words and split by spaces
+		//		tTerms := strings.Split(stopwords.CleanString(review.Text, "en", true), " ")
+		//		for _, term := range tTerms {
+		//			ptr := Businesses[b.BusinessID]
+		//			ptr.ReviewTermsCountHM.Add(term, 1) // Add the term to the function
+		//		}
+		//		t++
+		//		break
+		//	}
+		//}
+
 		for _, b := range Businesses {
 			if b.BusinessID == review.BusinessID {
 				// Remove stop words and split by spaces
 				tTerms := strings.Split(stopwords.CleanString(review.Text, "en", true), " ")
 				for _, term := range tTerms {
 					ptr := Businesses[b.BusinessID]
-					ptr.ReviewTermsCountHM.Add(term, 1) // Add the term to the function
+					if ptr.ReviewTermsCount == nil {
+						ptr.ReviewTermsCount = make(map[string]int)
+					}
+					ptr.ReviewTermsCount[term]++
 				}
 				t++
 				break

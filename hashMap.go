@@ -1,80 +1,92 @@
 package main
 
-const InitMapSize = 8
+import (
+	"math/rand"
+)
 
+const initialSize = 8 // initial size of the hash map
+
+// Node represents a key-value pair stored in the hash map
 type Node struct {
-	key   string
-	value int
-	next  *Node
+	key    string
+	values []string
+	next   *Node
 }
 
+// HashMap represents the hash map data structure
 type HashMap struct {
-	size    int
-	cap     int
-	nodeArr []*Node
+	size     int
+	capacity int
+	buckets  []*Node
 }
 
+// NewHashMap creates a new hash map with the specified initial size
 func NewHashMap() *HashMap {
 	return &HashMap{
-		size:    0,
-		cap:     InitMapSize,
-		nodeArr: make([]*Node, InitMapSize),
+		size:     0,
+		capacity: initialSize,
+		buckets:  make([]*Node, initialSize),
 	}
 }
 
-func (h *HashMap) hashFunction(key string) int {
-	return len(key) % h.cap
+// hashFunction maps the key to an index in the hash map
+func (hm *HashMap) hashFunction(key string) int {
+	return len(key) % hm.capacity
 }
 
-func (h *HashMap) Add(key string, value int) {
-	if IncrementIfExists(h, key) {
-		return
-	}
-	h.nodeArr[h.hashFunction(key)] = &Node{
-		key:   key,
-		value: value,
-		next:  h.nodeArr[h.hashFunction(key)],
-	}
-	h.size++
-	if h.size >= h.cap/2 {
-		h.resize()
-	}
-}
-
-func IncrementIfExists(h *HashMap, key string) bool {
-	value, exists := h.Get(key)
-	if exists {
-		h.Add(key, value+1)
-		return true
-	}
-	return false
-}
-
-func (h HashMap) Get(key string) (int, bool) {
-	index := h.hashFunction(key)
-	node := h.nodeArr[index]
+// Add adds a new string value to the array of values associated with the specified key in the hash map
+func (hm *HashMap) Add(key string, value string) {
+	index := hm.hashFunction(key)
+	node := hm.buckets[index]
 	for node != nil {
 		if node.key == key {
-			return node.value, true
+			node.values = append(node.values, value)
+			return
 		}
 		node = node.next
 	}
-	return 0, false
+	newNode := &Node{
+		key:    key,
+		values: []string{value},
+		next:   hm.buckets[index],
+	}
+	hm.buckets[index] = newNode
+	hm.size++
+	if hm.size >= hm.capacity/2 {
+		hm.resize()
+	}
+}
+
+// Get retrieves a random string value associated with the specified key from the hash map
+func (hm *HashMap) Get(key string) (string, bool) {
+	index := hm.hashFunction(key)
+	node := hm.buckets[index]
+	for node != nil {
+		if node.key == key {
+			if len(node.values) == 0 {
+				return "", false
+			}
+			randomIndex := rand.Intn(len(node.values))
+			return node.values[randomIndex], true
+		}
+		node = node.next
+	}
+	return "", false
 }
 
 // Delete removes the key-value pair with the specified key from the hash map
-func (h *HashMap) Delete(key string) {
-	index := h.hashFunction(key)
-	node := h.nodeArr[index]
+func (hm *HashMap) Delete(key string) {
+	index := hm.hashFunction(key)
+	node := hm.buckets[index]
 	var prev *Node
 	for node != nil {
 		if node.key == key {
 			if prev == nil {
-				h.nodeArr[index] = node.next
+				hm.buckets[index] = node.next
 			} else {
 				prev.next = node.next
 			}
-			h.size--
+			hm.size--
 			return
 		}
 		prev = node
@@ -83,21 +95,21 @@ func (h *HashMap) Delete(key string) {
 }
 
 // resize resizes the hash map when it becomes too full
-func (h *HashMap) resize() {
-	h.cap *= 2
-	tempNodes := make([]*Node, h.cap)
-	for i := 0; i < len(h.nodeArr); i++ {
-		node := h.nodeArr[i]
+func (hm *HashMap) resize() {
+	hm.capacity *= 2
+	newBuckets := make([]*Node, hm.capacity)
+	for i := 0; i < len(hm.buckets); i++ {
+		node := hm.buckets[i]
 		for node != nil {
-			index := h.hashFunction(node.key)
+			index := hm.hashFunction(node.key)
 			newNode := &Node{
-				key:   node.key,
-				value: node.value,
-				next:  tempNodes[index],
+				key:    node.key,
+				values: node.values,
+				next:   newBuckets[index],
 			}
-			tempNodes[index] = newNode
+			newBuckets[index] = newNode
 			node = node.next
 		}
 	}
-	h.nodeArr = tempNodes
+	hm.buckets = newBuckets
 }

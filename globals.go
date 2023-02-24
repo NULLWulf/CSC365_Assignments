@@ -1,20 +1,19 @@
 package main
 
 type Business struct {
-	BusinessID         string             `json:"business_id"`
-	Name               string             `json:"name"`
-	City               string             `json:"city"`
-	State              string             `json:"state"`
-	Stars              float32            `json:"stars"`
-	ReviewCount        int                `json:"review_count"`
-	IsOpen             int                `json:"is_open"`
-	Categories         string             `json:"categories"`
-	CategoriesArr      []string           `json:"categories_arr" nil:"true"`
-	ReviewTermsCount   map[string]int     `json:"review_terms_count"`
-	ReviewTermsCountHM HashMap            `json:"review_terms_counthm"`
-	TermCountTotal     int                `json:"term_count_total"`
-	TermFrequency      map[string]float32 `json:"term_frequency"`
-	TfIdf              map[string]float32 `json:"tf_idf"`
+	BusinessID       string             `json:"business_id"`
+	Name             string             `json:"name"`
+	City             string             `json:"city"`
+	State            string             `json:"state"`
+	Stars            float32            `json:"stars"`
+	ReviewCount      int                `json:"review_count"`
+	IsOpen           int                `json:"is_open"`
+	Categories       string             `json:"categories"`
+	CategoriesArr    []string           `json:"categories_arr" nil:"true"`
+	ReviewTermsCount map[string]int     `json:"review_terms_count"`
+	TermCountTotal   int                `json:"term_count_total"`
+	TermFrequency    map[string]float32 `json:"term_frequency"`
+	TfIdf            map[string]float32 `json:"tf_idf"`
 }
 
 type Review struct {
