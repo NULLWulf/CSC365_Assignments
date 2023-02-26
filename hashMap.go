@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 )
 
@@ -28,15 +29,21 @@ func NewHashMap() *HashMap {
 		buckets:  make([]*Node, initialSize),
 	}
 }
+func (hm *HashMap) hashFunction(key string) (hash int) {
+	hash = 0
+	for i := 0; i < len(key); i++ {
+		hash = (hash*31 + int(key[i])) % hm.capacity
+	}
+	return hash
+}
 
-// hashFunction maps the key to an index in the hash map
-func (hm *HashMap) hashFunction(key string) int {
-	return len(key) % hm.capacity
+func (hm *HashMap) getIndex(key string) (index int) {
+	return hm.hashFunction(key) % hm.capacity
 }
 
 // Add adds a new string value to the array of values associated with the specified key in the hash map
 func (hm *HashMap) Add(key string, value string) {
-	index := hm.hashFunction(key)
+	index := hm.getIndex(key)
 	node := hm.buckets[index]
 	for node != nil {
 		if node.key == key {
@@ -112,4 +119,15 @@ func (hm *HashMap) resize() {
 		}
 	}
 	hm.buckets = newBuckets
+}
+
+// PrintKeys prints all keys in the hash map
+func (hm *HashMap) PrintKeys() {
+	for i := 0; i < hm.capacity; i++ {
+		node := hm.buckets[i]
+		for node != nil {
+			log.Println(node.key)
+			node = node.next
+		}
+	}
 }

@@ -14,6 +14,7 @@ type Business struct {
 	TermCountTotal   int                `json:"term_count_total"`
 	TermFrequency    map[string]float32 `json:"term_frequency"`
 	TfIdf            map[string]float32 `json:"tf_idf"`
+	XValTerms        []string
 }
 
 type Review struct {
@@ -43,11 +44,11 @@ type bizTuple struct {
 var (
 	Businesses            = make(map[string]Business)
 	TermDocumentFrequency = make(map[string]int)
-	ReviewTotal           = 25000
+	ReviewTotal           = 1000000
 	BusinessKeyMap        []string
-	ReviewCount           = 100
-	RelatibilityMod       = 0.10
-	TermKeyMap            = make(map[string][]string)
+	ReviewCount           = 25
+	RelatibilityMod       = 0.10 //TermKeyMap            = make(map[string][]string)
+	TermKeyMap            = NewHashMap()
 )
 
 const (

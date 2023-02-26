@@ -68,11 +68,15 @@ func sortTfIdf() {
 		sort.Slice(tfidfSlice, func(i, j int) bool {
 			return tfidfSlice[i].value > tfidfSlice[j].value
 		})
-		sortedMap := make(map[string]float32, len(tfidfSlice))
-		for _, entry := range tfidfSlice {
-			sortedMap[entry.key] = entry.value
+
+		xvals := make([]string, 0)
+		for i := 0; i < int(float32(len(b.TfIdf))*float32(RelatibilityMod)); i++ {
+			xvals = append(xvals, tfidfSlice[i].key)
 		}
-		b.TfIdf = sortedMap
+
+		b.TfIdf = nil
+		b.XValTerms = xvals
+		//b.TfIdfSlice = tfidfSlice
 		tempBizMap[b.BusinessID] = b
 	}
 	Businesses = tempBizMap
@@ -85,20 +89,20 @@ func sortTfIdf() {
 // it returns the x most valuable terms (respective of the total term keys in the map)
 // and adds this to a Global Relatibility key map
 func addMostRelevantTermsKeyMap() {
-	TermKeyMap = make(map[string][]string)
-	tempKeyMap := make(map[string][]string)
+	tempKeyMap := NewHashMap()
 	for _, b := range Businesses {
-		i := 0
-		for k := range b.TfIdf {
-			tempKeyMap[k] = append(tempKeyMap[k], b.BusinessID)
+		tempArr := b.XValTerms
+		for i := range tempArr {
+			//tempKeyMap[k] = append(tempKeyMap[k], b.BusinessID)
 			// Return X most valuable tf-idf to use in global relatability index
-			if i > int(float32(len(b.TfIdf))*float32(RelatibilityMod)) {
-				break
-			}
-			i++
+			tempKeyMap.Add(tempArr[i], b.BusinessID)
+			break
 		}
+
 	}
-	log.Printf("Most relevant terms added to key map, length: %d", len(tempKeyMap))
+
+	log.Printf("Most relevant terms added to key map, length: %d", tempKeyMap.size)
+
 	TermKeyMap = tempKeyMap
 }
 
@@ -116,58 +120,31 @@ func getRandomBusinessList(n int) []bizTuple {
 	return randomBizList
 }
 
-// Called from an http handler, this finds the relatable business by gettings
-// it's most valuable td-idf term-keys into a list, then it randomly selects
-// an element from said list to get a specifc term-key.  Then it finds the term
-// as a key in the TermKeysMap, in which the value at the map element is an array of
-// business Ids whom share that term for relatively high tf-idf.
-// It then iterates through and picks a business in tthe TermKeyMap subset.
+// Returns 2 random relatable businesses
 func findRelatableBusinesses(businessID string) []Business {
 	log.Println("Finding relatable businesses...")
-	relatableKeys := getRelatableByKey(businessID) // keys from this business
-	relatableBusinesses := make([]Business, 0, 2)  // 2 businesses to return
+	relatableKeys := Businesses[businessID].XValTerms // get relatable terms for this business
+	relatableBusinesses := make([]Business, 0, 2)     // instantiate 2 businesses to return
 
-	for found := 0; found < 2; {
-		tryKey := relatableKeys[rand.Intn(len(relatableKeys)-1)]
-		for _, bID := range TermKeyMap[tryKey] { // term key not set as a global variable at this point
-			if bID != businessID {
-				// check if key is already in relatableBusinesses
-				keyExists := false
-				for _, b := range relatableBusinesses {
-					if b.BusinessID == bID {
-						keyExists = true
-						break
-					}
-				}
-				// add business to relatableBusinesses if key is not already in it
-				if !keyExists {
-					relatableBusinesses = append(relatableBusinesses, Businesses[bID])
-					found++
-					break
-				}
-			}
+	bid1, bid2 := "k", "k"
+	found := false
+	for !found {
+		key1, key2 := "k", "k" // starter keys
+		for key1 == key2 {
+			r1 := rand.Intn(len(relatableKeys) - 1)
+			r2 := rand.Intn(len(relatableKeys) - 1)
+			key1 = relatableKeys[r1]
+			key2 = relatableKeys[r2]
+		}
+
+		bid1, _ = TermKeyMap.Get(key1)
+		bid2, _ = TermKeyMap.Get(key2)
+		if bid1 != "" && bid2 != "" && bid1 != bid2 && bid1 != businessID && bid2 != businessID {
+			found = true
 		}
 	}
 
+	relatableBusinesses = append(relatableBusinesses, Businesses[bid1])
+	relatableBusinesses = append(relatableBusinesses, Businesses[bid2])
 	return relatableBusinesses
-}
-
-// Returns X most valuable tf-idf terms for a given business
-// By default it will get the most 10% valuable tf-idfs however this variable can
-// tweaked to get a larger range
-func getRelatableByKey(key string) []string {
-
-	tBussiness := Businesses[key]
-	tTDIDF := tBussiness.TfIdf
-	i := 0
-	tKeys := make([]string, 0, len(tTDIDF))
-	for k := range tTDIDF {
-		if i > int(float32(len(tTDIDF))*float32(RelatibilityMod)) {
-			break
-		}
-		tKeys = append(tKeys, k)
-		i++
-	}
-	// Get the top 10% of terms in the business
-	return tKeys
 }

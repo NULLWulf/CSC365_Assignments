@@ -34,7 +34,6 @@ func readBusinessesJson() {
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > ReviewCount {
 				business.CategoriesArr = strings.Split(business.Categories, ", ")
 				business.ReviewTermsCount = make(map[string]int)
-				business.ReviewTermsCountHM = *NewHashMap()
 				Businesses[business.BusinessID] = business
 				BusinessKeyMap = append(BusinessKeyMap, business.BusinessID)
 			}
@@ -68,19 +67,6 @@ func readReviewsJsonScannner() {
 			log.Println("Review ignored: ", err)
 			continue
 		}
-
-		//for _, b := range Businesses {
-		//	if b.BusinessID == review.BusinessID {
-		//		// Remove stop words and split by spaces
-		//		tTerms := strings.Split(stopwords.CleanString(review.Text, "en", true), " ")
-		//		for _, term := range tTerms {
-		//			ptr := Businesses[b.BusinessID]
-		//			ptr.ReviewTermsCountHM.Add(term, 1) // Add the term to the function
-		//		}
-		//		t++
-		//		break
-		//	}
-		//}
 
 		for _, b := range Businesses {
 			if b.BusinessID == review.BusinessID {
