@@ -76,7 +76,6 @@ func sortTfIdf() {
 
 		b.TfIdf = nil
 		b.XValTerms = xvals
-		//b.TfIdfSlice = tfidfSlice
 		tempBizMap[b.BusinessID] = b
 	}
 	Businesses = tempBizMap
