@@ -44,10 +44,10 @@ type bizTuple struct {
 var (
 	Businesses            = make(map[string]Business)
 	TermDocumentFrequency = make(map[string]int)
-	ReviewTotal           = 1000000
+	ReviewTotal           = 50000
 	BusinessKeyMap        []string
-	ReviewCount           = 25
-	RelatibilityMod       = 0.10 //TermKeyMap            = make(map[string][]string)
+	ReviewCount           = 50
+	RelatibilityMod       = 0.25 //TermKeyMap            = make(map[string][]string)
 	TermKeyMap            = NewHashMap()
 )
 
