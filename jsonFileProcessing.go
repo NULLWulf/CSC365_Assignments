@@ -3,23 +3,30 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"github.com/bbalet/stopwords"
+	"fmt"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/bbalet/stopwords"
 )
 
 // Reads Businesses JSON data
 func readBusinessesJson() {
 	log.Println("Loading Business JSON data...")
-	Businesses = make(map[string]Business) // Instantiate global businesses map
+	businessMap := NewHashMap() // Create new hash map for businesses
+	t := 0
+	// Create directory for fileblock if it does not exist
+	err := os.MkdirAll("fileblock", 0777)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Read the file containing business information
 	file, err := os.ReadFile(businessPath) // Reads entire file to file object
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Loop through the file object, decoding each business object and adding it to the array
-	BusinessKeyMap = make([]string, 0)
 	for i := 0; i < len(file); {
 		var business Business // temporary Business variable
 		j := i
@@ -32,15 +39,41 @@ func readBusinessesJson() {
 		} else {
 			// Get businesses
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > ReviewCount {
-				business.CategoriesArr = strings.Split(business.Categories, ", ")
-				business.ReviewTermsCount = make(map[string]int)
-				Businesses[business.BusinessID] = business
-				BusinessKeyMap = append(BusinessKeyMap, business.BusinessID)
+
+				replaceSlash := strings.ReplaceAll(business.Categories, "\u0026", ",")
+				replaceSlash = strings.ReplaceAll(replaceSlash, "/", ", ")
+
+				business.CategoriesArr = strings.Split(replaceSlash, ", ")
+
+				// Write business to JSON file
+				file := fmt.Sprintf("fileblock/%s.json", business.BusinessID)
+				businessFile, err := os.Create(file)
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer businessFile.Close()
+
+				businessJson, err := json.Marshal(business)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				_, err = businessFile.Write(businessJson)
+				if err != nil {
+					log.Fatal(err)
+				}
+				businessMap.Add(business.BusinessID, file)
+				t++
+
 			}
+
 		}
 		i = j + 1
+		if t == 10000 {
+			break
+		}
 	}
-	log.Println("Businesses Loaded: ", len(Businesses))
+	log.Println("Businesses Loaded: ", businessMap.size)
 
 }
 

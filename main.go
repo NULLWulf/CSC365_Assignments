@@ -34,11 +34,11 @@ func (p *program) run() {
 	router.GET("/random", returnRandomBusinessListJson) // Handler for random Businesses list
 	router.GET("/relatable", getRelatableBusinesses)    // Handler for Relatable Businesses
 	readBusinessesJson()                                // Review Business JSON data and filter
-	readReviewsJsonScannner()                           // Rview Review JSON and generate term count tables
-	removeNullReviewsCalculateFrequency()               // REmove Businesses with no reviews and calculate term document frequency
-	calculatetfIdf()                                    // Iterate through businesses and calculate td-idf for terms
-	sortTfIdf()                                         // Sort tf-idf map within the Businneses
-	addMostRelevantTermsKeyMap()                        // Add top x percent of relatable terms to global key map
+	// readReviewsJsonScannner()                           // Rview Review JSON and generate term count tables
+	// removeNullReviewsCalculateFrequency()               // REmove Businesses with no reviews and calculate term document frequency
+	// calculatetfIdf()                                    // Iterate through businesses and calculate td-idf for terms
+	// sortTfIdf()                                         // Sort tf-idf map within the Businneses
+	// addMostRelevantTermsKeyMap()                        // Add top x percent of relatable terms to global key map
 	err := http.ListenAndServe(":7500", router)
 
 	if err != nil {
@@ -58,6 +58,3 @@ func (p *program) Stop(service.Service) error {
 	log.Println(serviceName + " stopped")
 	return nil
 }
-
-
-

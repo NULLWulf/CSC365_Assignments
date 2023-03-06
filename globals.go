@@ -9,12 +9,12 @@ type Business struct {
 	ReviewCount      int                `json:"review_count"`
 	IsOpen           int                `json:"is_open"`
 	Categories       string             `json:"categories"`
-	CategoriesArr    []string           `json:"categories_arr" nil:"true"`
-	ReviewTermsCount map[string]int     `json:"review_terms_count"`
-	TermCountTotal   int                `json:"term_count_total"`
-	TermFrequency    map[string]float32 `json:"term_frequency"`
-	TfIdf            map[string]float32 `json:"tf_idf"`
-	XValTerms        []string
+	CategoriesArr    []string           `json:"array_categories"`
+	ReviewTermsCount map[string]int     `json:"-"`
+	TermCountTotal   int                `json:"-"`
+	TermFrequency    map[string]float32 `json:"-"`
+	TfIdf            map[string]float32 `json:"-"`
+	XValTerms        []string           `json:"-"`
 }
 
 type Review struct {
