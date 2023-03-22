@@ -134,15 +134,11 @@ func readReviewsJsonScannner() {
 }
 
 func ReadBusinessJSON2() ([]Business, []BusinessDataPoint) {
+	InstantiateFileBlock()
 	log.Println("Loading Business JSON data...")
 	var Businesses []Business
 	var BusinessDPS []BusinessDataPoint
 	t := 0
-	// Create directory for fileblock if it does not exist
-	err := os.MkdirAll("fileblock", 0777)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// Read the file containing business information
 	file, err := os.ReadFile("yelp_academic_dataset_business.json") // Reads entire file to file object
@@ -160,30 +156,25 @@ func ReadBusinessJSON2() ([]Business, []BusinessDataPoint) {
 			log.Println("Business ignored: ", err)
 		} else {
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
-				// // Write business to JSON file
-				// file := fmt.Sprintf("fileblock/%s.json", business.BusinessID)
-				// businessFile, err := os.Create(file)
-				// if err != nil {
-				// 	log.Fatal(err)
-				// }
-				// defer businessFile.Close()
+				// Write business to JSON file
+				file := fmt.Sprintf("fileblock/%s.json", business.BusinessID)
+				businessFile, err := os.Create(file)
+				defer businessFile.Close()
 
-				// businessJson, err := json.Marshal(business)
-				// if err != nil {
-				// 	log.Fatal(err)
-				// }
+				businessJson, err := json.Marshal(business)
+				if err != nil {
+					log.Fatal(err)
+				}
 
-				// _, err = businessFile.Write(businessJson)
-				// if err != nil {
-				// 	log.Fatal(err)
-				// }
+				_, err = businessFile.Write(businessJson)
+				if err != nil {
+					log.Fatal(err)
+				}
 				Businesses = append(Businesses, business)
 				BusinessDPS = append(BusinessDPS, BusinessDataPoint{BusinessID: business.BusinessID, Latitude: business.Latitude, Longitude: business.Longtitude, ReviewScore: float32(business.Stars)})
 				t++
 
 			}
-			// }()
-
 		}
 		i = j + 1
 		if t == 10000 {
@@ -194,4 +185,35 @@ func ReadBusinessJSON2() ([]Business, []BusinessDataPoint) {
 
 	return Businesses, BusinessDPS
 
+}
+
+func ReadDirectory(url string) {
+
+	fileList, err := os.ReadDir(url)
+	if err != nil {
+		log.Printf("Failed to read directory")
+	}
+
+	for i, e := range fileList {
+		log.Printf("File %d : %s", i, e.Name())
+	}
+}
+
+func DeleteDirectory(url string) {
+	err := os.RemoveAll(url)
+	if err != nil {
+		log.Printf("Failed to delete directory")
+	}
+}
+
+func InstantiateFileBlock() {
+	// See if directory exists and if it does delete it
+	if _, err := os.Stat("fileblock"); !os.IsNotExist(err) {
+		DeleteDirectory("fileblock")
+	}
+	// Create directory for fileblock if it does not exist
+	err := os.MkdirAll("fileblock", 0777)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
