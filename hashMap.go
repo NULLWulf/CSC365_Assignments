@@ -131,3 +131,13 @@ func (hm *HashMap) PrintKeys() {
 		}
 	}
 }
+
+func (hm *HashMap) PrintValues() {
+	for i := 0; i < hm.capacity; i++ {
+		node := hm.buckets[i]
+		for node != nil {
+			log.Println(node.values)
+			node = node.next
+		}
+	}
+}

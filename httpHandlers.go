@@ -14,6 +14,12 @@ func homepage(writer http.ResponseWriter, request *http.Request, params httprout
 	http.ServeFile(writer, request, "./html/homepage.html")
 }
 
+// homepage Serves homepage (index.html)
+func homepage2(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	log.Println("Serving homepage")
+	http.ServeFile(writer, request, "./html/homepage2.html")
+}
+
 // Gets a random list of up 10 businesses and returns to front end
 // in this case the list is appended to a drop down menu.
 func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {

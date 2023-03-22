@@ -38,6 +38,7 @@ func readBusinessesJson() {
 			log.Println("Business ignored: ", err)
 		} else {
 			// Get businesses
+			// go func() {
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > ReviewCount {
 
 				replaceSlash := strings.ReplaceAll(business.Categories, "\u0026", ",")
@@ -66,6 +67,7 @@ func readBusinessesJson() {
 				t++
 
 			}
+			// }()
 
 		}
 		i = j + 1
@@ -129,4 +131,67 @@ func readReviewsJsonScannner() {
 	}
 
 	log.Printf("Reviews Loading: %d.  Businesses before removal of nulls: %d", ReviewTotal, len(Businesses))
+}
+
+func ReadBusinessJSON2() ([]Business, []BusinessDataPoint) {
+	log.Println("Loading Business JSON data...")
+	var Businesses []Business
+	var BusinessDPS []BusinessDataPoint
+	t := 0
+	// Create directory for fileblock if it does not exist
+	err := os.MkdirAll("fileblock", 0777)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Read the file containing business information
+	file, err := os.ReadFile("yelp_academic_dataset_business.json") // Reads entire file to file object
+	if err != nil {
+		log.Fatal(err)
+	}
+	for i := 0; i < len(file); {
+		var business Business // temporary Business variable
+		j := i
+		for j < len(file) && file[j] != '\n' {
+			j++
+		}
+		err := json.Unmarshal(file[i:j], &business)
+		if err != nil {
+			log.Println("Business ignored: ", err)
+		} else {
+			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
+				// // Write business to JSON file
+				// file := fmt.Sprintf("fileblock/%s.json", business.BusinessID)
+				// businessFile, err := os.Create(file)
+				// if err != nil {
+				// 	log.Fatal(err)
+				// }
+				// defer businessFile.Close()
+
+				// businessJson, err := json.Marshal(business)
+				// if err != nil {
+				// 	log.Fatal(err)
+				// }
+
+				// _, err = businessFile.Write(businessJson)
+				// if err != nil {
+				// 	log.Fatal(err)
+				// }
+				Businesses = append(Businesses, business)
+				BusinessDPS = append(BusinessDPS, BusinessDataPoint{BusinessID: business.BusinessID, Latitude: business.Latitude, Longitude: business.Longtitude, ReviewScore: float32(business.Stars)})
+				t++
+
+			}
+			// }()
+
+		}
+		i = j + 1
+		if t == 10000 {
+			break
+		}
+	}
+	log.Println("Businesses Loaded: ", len(Businesses))
+
+	return Businesses, BusinessDPS
+
 }

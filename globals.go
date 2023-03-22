@@ -10,6 +10,8 @@ type Business struct {
 	IsOpen           int                `json:"is_open"`
 	Categories       string             `json:"categories"`
 	CategoriesArr    []string           `json:"array_categories"`
+	Latitude         float32            `json:"latitude"`
+	Longtitude       float32            `json:"longitude"`
 	ReviewTermsCount map[string]int     `json:"-"`
 	TermCountTotal   int                `json:"-"`
 	TermFrequency    map[string]float32 `json:"-"`
