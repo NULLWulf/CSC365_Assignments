@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"math/rand"
 )
@@ -123,7 +122,7 @@ func KMedoids(data []BusinessDataPoint, k int) []Cluster {
 
 func distance(p1, p2 BusinessDataPoint) float32 {
 	// Euclidean distance between two points
-	return float32(math.Sqrt(math.Pow(float64(p1.Latitude-p2.Latitude), 2) + math.Pow(float64(p1.Longitude-p2.Longitude), 2)))
+	return float32(math.Sqrt(math.Pow(float64(p1.Latitude-p2.Latitude), 2) + math.Pow(float64(p1.Longitude-p2.Longitude), 2) + math.Pow(float64(p1.ReviewScore-p2.ReviewScore), 2)))
 }
 
 func computeCost(cluster []BusinessDataPoint, point BusinessDataPoint) float32 {
@@ -155,25 +154,26 @@ func equal(medoids1, medoids2 []BusinessDataPoint) bool {
 	return true
 }
 
-func kmeansTester() {
-	// Load businesses from JSON file
-	_, businessesDP := ReadBusinessJSON2()
+// func kmeansTester() {
+// 	// Load businesses from JSON file
+// 	// _, businessesDP := ReadBusinessJSON2()
 
-	// Run k-medoids clustering algorithm
-	var KmediodsDS KmediodsDS
-	KmediodsDS.PopClusters(businessesDP, 5)
-	// Print out the clusters
-	log.Println("K-Medoids Clustering")
-	for i, cluster := range KmediodsDS.Clusters {
-		log.Printf("Cluster %d", i)
-		log.Printf("Medoid: %s", cluster.Medoid.BusinessID)
-		// log.Printf("Points:")
-		// for _, point := range cluster.Points {
-		// 	log.Printf("%s", point.BusinessID)
-		// }
-		// log.Println()
-	}
-}
+// 	// Run k-medoids clustering algorithm
+// 	var KmediodsDS KmediodsDS
+// 	KmediodsDS.PopClusters(businessesDP, 100)
+// 	// Print out the clusters
+// 	log.Println("K-Medoids Clustering")
+// 	for i, cluster := range KmediodsDS.Clusters {
+// 		log.Printf("Cluster %d", i)
+// 		log.Printf("Medoid: %s", cluster.Medoid.BusinessID)
+// 		// log.Printf("Points:")
+// 		// for _, point := range cluster.Points {
+// 		// 	log.Printf("%s", point.BusinessID)
+// 		// }
+// 		// log.Println()
+// 	}
+
+// }
 
 func variadicLoop(Vars ...interface{}) {
 	for _, v := range Vars {

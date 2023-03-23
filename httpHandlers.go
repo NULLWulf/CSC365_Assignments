@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
+	"os"
 )
 
 // homepage Serves homepage (index.html)
@@ -44,7 +44,6 @@ func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Requ
 // and returns
 func getRelatableBusinesses(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	businessID := request.URL.Query().Get("business_id")
-
 	relatableBusinesses := findRelatableBusinesses(businessID)
 	// make bizTouple array of two businesses
 	bizTouples := make([]bizTuple, 0)
@@ -61,6 +60,56 @@ func getRelatableBusinesses(writer http.ResponseWriter, request *http.Request, p
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	writer.Header().Set("Content-Type", "application/json")
+	writer.Write(jsonBytes)
+}
+
+func getRelatableCluster(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	log.Printf("getRelatableCluster")
+	businessID := request.URL.Query().Get("business_id")
+	BizMap, _ := LoadHashMapFromFile("hashmap.json")
+	a := BizMap.GetKeyList()
+
+	var selectedBiz Business
+	file, err := os.ReadFile("fileblock/" + businessID + ".json")
+	if err != nil {
+		log.Println(err)
+	}
+	err = json.Unmarshal(file, &selectedBiz)
+	log.Printf("fileblock/%s.json: %+v", businessID, selectedBiz)
+
+	// get the cluster of the selected business
+	relatab := make(map[string]float32)
+	for i := 0; i < len(a); i++ {
+		file, err := os.ReadFile("fileblock/" + a[i] + ".json")
+		if err != nil {
+			log.Println(err)
+		}
+		var b Business
+		err = json.Unmarshal(file, &b)
+		if err != nil {
+			log.Println(err)
+		}
+		relatab[b.BusinessID] = distance(
+			BusinessDataPoint{
+				BusinessID:  selectedBiz.BusinessID,
+				ReviewScore: selectedBiz.Stars,
+				Latitude:    selectedBiz.Latitude,
+				Longitude:   selectedBiz.Longtitude,
+			},
+			BusinessDataPoint{
+				BusinessID:  b.BusinessID,
+				ReviewScore: b.Stars,
+				Latitude:    b.Latitude,
+				Longitude:   b.Longtitude,
+			},
+		)
+	}
+
+	var jsonBytes []byte
+	jsonBytes, err = json.Marshal(relatab)
+	log.Printf("jsonBytes: %+v", string(jsonBytes))
+
 	writer.Header().Set("Content-Type", "application/json")
 	writer.Write(jsonBytes)
 }

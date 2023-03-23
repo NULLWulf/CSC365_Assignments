@@ -30,16 +30,36 @@ func RUNA1() {
 
 // RUN2_1 Runtime for Assignment 2 program, the loader for the service
 func RUN2_1() {
-	_, BusinessesDP := ReadBusinessJSON2()
-	var KmediodsDS KmediodsDS
-	KmediodsDS.PopClusters(BusinessesDP, 10)
-	log.Printf("Starting Assignment 2 Loader")
-	//Map := NewHashMap22()
-	//for _, c := range KmediodsDS.Clusters {
-	//	for _, b := range c.Points {
-	//		Map.Add(string(c.ID), b.BusinessID)
-	//	}
-	//}
+	ReadBusinessJSON2()
+	// var KmediodsDS KmediodsDS
+	// log.Printf("Starting Kemediods Algorithm")
+	// KmediodsDS.PopClusters(BusinessesDP, 10)
+	// // Save KMedios to file
+	// log.Printf("Saving KMedios to file")
+
+	// log.Printf("Starting Assignment 2 Loader")
+
+	// Hash := NewHashMap()
+	// // Put clusters into HashMap
+	// log.Printf("Putting clusters into HashMap")
+	// for _, cluster := range KmediodsDS.Clusters {
+	// 	for _, business := range cluster.Points {
+	// 		Hash.Add(cluster.Medoid.BusinessID, business.BusinessID)
+	// 	}
+	// }
+
+	// log.Printf("Saving HashMap to file")
+	// err := Hash.SaveToFile("hashmap.json")
+	// if err != nil {
+	// 	return
+	// }
+	// Hash2, err := LoadHashMapFromFile("hashmap.json")
+	// if err != nil {
+	// 	log.Fatal("Problem loading hashmap: " + err.Error())
+	// }
+
+	// log.Printf("HashMap loaded from file and verified %d", Hash2.Size)
+	// log.Printf("Finished Assignment 2 Loader Finished")
 }
 
 // RUN2_2 Runtime for Assignment 2 program, the application for the service
@@ -48,7 +68,7 @@ func RUN2_2() {
 	router := httprouter.New()                          // Create HTTP router
 	router.GET("/", homepage)                           // Services index.html
 	router.GET("/random", returnRandomBusinessListJson) // Handler for random Businesses list
-	router.GET("/relatable", getRelatableBusinesses)    // Handler for Relatable Businesses
+	router.GET("/clustered", getRelatableCluster)       // Handler for Relatable Businesses
 	err := http.ListenAndServe(":7500", router)
 	if err != nil {
 		log.Fatal("Problem starting service: " + err.Error())

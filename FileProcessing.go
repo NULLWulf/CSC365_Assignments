@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/bbalet/stopwords"
 )
@@ -14,7 +17,6 @@ import (
 // Reads Businesses JSON data
 func readBusinessesJson() {
 	log.Println("Loading Business JSON data...")
-	businessMap := NewHashMap() // Create new hash map for businesses
 	t := 0
 	// Create directory for fileblock if it does not exist
 	err := os.MkdirAll("fileblock", 0777)
@@ -22,11 +24,14 @@ func readBusinessesJson() {
 		log.Fatal(err)
 	}
 
+	// Bussiness ID list
+	var businessIDList []string
 	// Read the file containing business information
 	file, err := os.ReadFile(businessPath) // Reads entire file to file object
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Businesses Loaded: %d", len(file))
 	for i := 0; i < len(file); {
 		var business Business // temporary Business variable
 		j := i
@@ -47,7 +52,7 @@ func readBusinessesJson() {
 				business.CategoriesArr = strings.Split(replaceSlash, ", ")
 
 				// Write business to JSON file
-				file := fmt.Sprintf("fileblock/%s.json", business.BusinessID)
+				file := fmt.Sprintf("fileblock/%d.json", t)
 				businessFile, err := os.Create(file)
 				if err != nil {
 					log.Fatal(err)
@@ -63,7 +68,8 @@ func readBusinessesJson() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				businessMap.Add(business.BusinessID, file)
+				businessIDList = append(businessIDList, business.BusinessID)
+
 				t++
 
 			}
@@ -71,11 +77,16 @@ func readBusinessesJson() {
 
 		}
 		i = j + 1
-		if t == 10000 {
+		if t == 10 {
 			break
 		}
 	}
-	log.Println("Businesses Loaded: ", businessMap.size)
+	log.Printf("Businesses Loaded: %d", t)
+	// businessMap := NewEHT2(10)
+	// for _, id := range businessIDList {
+	// 	businessMap.insert(id)
+	// }
+	// log.Println("Businesses Loaded: ", businessMap.DirectorySize)
 
 }
 
@@ -133,20 +144,19 @@ func readReviewsJsonScannner() {
 	log.Printf("Reviews Loading: %d.  Businesses before removal of nulls: %d", ReviewTotal, len(Businesses))
 }
 
-func ReadBusinessJSON2() ([]Business, []BusinessDataPoint) {
+func ReadBusinessJSON2() {
 	InstantiateFileBlock()
 	log.Println("Loading Business JSON data...")
-	var Businesses []Business
-	var BusinessDPS []BusinessDataPoint
+	eht := NewEHT2(1000)
 	t := 0
-
-	// Read the file containing business information
-	file, err := os.ReadFile("yelp_academic_dataset_business.json") // Reads entire file to file object
+	file, err := os.ReadFile("yelp_academic_dataset_business.json")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	businessIDList := make([]string, 0)
 	for i := 0; i < len(file); {
-		var business Business // temporary Business variable
+		var business Business
 		j := i
 		for j < len(file) && file[j] != '\n' {
 			j++
@@ -159,32 +169,39 @@ func ReadBusinessJSON2() ([]Business, []BusinessDataPoint) {
 				// Write business to JSON file
 				file := fmt.Sprintf("fileblock/%s.json", business.BusinessID)
 				businessFile, err := os.Create(file)
-				defer businessFile.Close()
-
+				if err != nil {
+					log.Fatal(err)
+				}
 				businessJson, err := json.Marshal(business)
 				if err != nil {
 					log.Fatal(err)
 				}
-
 				_, err = businessFile.Write(businessJson)
 				if err != nil {
 					log.Fatal(err)
 				}
-				Businesses = append(Businesses, business)
-				BusinessDPS = append(BusinessDPS, BusinessDataPoint{BusinessID: business.BusinessID, Latitude: business.Latitude, Longitude: business.Longtitude, ReviewScore: float32(business.Stars)})
-				t++
-
+				businessFile.Close()
 			}
+			// eht.insert(business.BusinessID)
+			businessIDList = append(businessIDList, business.BusinessID)
+			t++
 		}
 		i = j + 1
 		if t == 10000 {
 			break
 		}
 	}
-	log.Println("Businesses Loaded: ", len(Businesses))
-
-	return Businesses, BusinessDPS
-
+	fmt.Printf("Businesses Loaded: %d.  Businesses after removal of nulls: %d)", t, eht.DirectorySize)
+	for _, id := range businessIDList {
+		//log.Printf("Index: %d, ID: %s", i, id)
+		eht.insert(id)
+	}
+	err = eht.saveToDisk("artifacts")
+	if err != nil {
+		log.Printf("Failed to save to disk: %s", err)
+		return
+	}
+	log.Print(eht.DirectorySize)
 }
 
 func ReadDirectory(url string) {
@@ -208,12 +225,53 @@ func DeleteDirectory(url string) {
 
 func InstantiateFileBlock() {
 	// See if directory exists and if it does delete it
+	log.Printf("Instantiating fileblock directory...")
 	if _, err := os.Stat("fileblock"); !os.IsNotExist(err) {
+		log.Printf("fileblock directory already exists.  Deleting...")
 		DeleteDirectory("fileblock")
 	}
+	log.Printf("fileblock directory deleted.  Creating new directory...")
 	// Create directory for fileblock if it does not exist
 	err := os.MkdirAll("fileblock", 0777)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func GetRandomFileNames(dirPath string, numFiles int) ([]string, error) {
+	rand.Seed(time.Now().UnixNano()) // set random seed
+
+	// Get list of all files in directory
+	files, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Shuffle the files randomly
+	rand.Shuffle(len(files), func(i, j int) {
+		files[i], files[j] = files[j], files[i]
+	})
+
+	// Get the names of the first `numFiles` files
+	var result []string
+	for i := 0; i < numFiles && i < len(files); i++ {
+		if !files[i].IsDir() {
+			result = append(result, files[i].Name())
+		}
+	}
+
+	return result, nil
+}
+
+func LoadBusinessFromFile(businessID string) Business {
+	file, err := os.ReadFile(fmt.Sprintf("fileblock/%s", businessID))
+	if err != nil {
+		log.Fatal(err)
+	}
+	var business Business
+	err = json.Unmarshal(file, &business)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return business
 }
