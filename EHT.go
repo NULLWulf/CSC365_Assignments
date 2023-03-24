@@ -39,7 +39,7 @@ func NewEHT() *ExtensibleHashTable {
 	ds := int(math.Pow(2, float64(gd)))
 	bucketArr := make([]*Bucket, ds)
 	for i := 0; i < ds; i++ {
-		bucketArr[i] = NewBucket2(bs)
+		bucketArr[i] = NewBucket()
 	}
 
 	return &ExtensibleHashTable{
@@ -62,7 +62,7 @@ func (eht *ExtensibleHashTable) getDS() int {
 	return eht.DirectorySize
 }
 
-func (eht *ExtensibleHashTable) split(key string) {
+func (eht *ExtensibleHashTable) split(key int) {
 	index := eht.FNVHash(key)
 	oldBucket := eht.BucketArr[index]
 	newBucket := NewBucket2(eht.BucketSize)
@@ -73,12 +73,12 @@ func (eht *ExtensibleHashTable) split(key string) {
 	}
 
 	newIndex := eht.FNVHash(key)
-	toBeMoved := []string{}
+	toBeMoved := []int{}
 
 	for i := 0; i < eht.BucketSize; i++ {
 		if eht.FNVHash(oldBucket.ValueArr[i]) == newIndex {
 			toBeMoved = append(toBeMoved, oldBucket.ValueArr[i])
-			oldBucket.ValueArr[i] = ""
+			oldBucket.ValueArr[i] = 0
 		}
 	}
 
@@ -103,9 +103,19 @@ func (eht *ExtensibleHashTable) doubleArray() {
 	newDirectorySize := eht.DirectorySize * 2
 	newArray := make([]*Bucket, newDirectorySize)
 
+	// Update local depth of existing buckets
 	for i := 0; i < eht.DirectorySize; i++ {
-		newArray[i] = eht.BucketArr[i]
-		newArray[i+eht.DirectorySize] = eht.BucketArr[i]
+		eht.BucketArr[i].LocalDepth++
+	}
+
+	// Rehash all items in the hash table
+	for i := 0; i < eht.DirectorySize; i++ {
+		for j := 0; j < eht.BucketSize; j++ {
+			if eht.BucketArr[i].ValueArr[j] != 0 {
+				index := eht.FNVHash(eht.BucketArr[i].ValueArr[j])
+				newArray[index] = eht.BucketArr[i]
+			}
+		}
 	}
 
 	eht.BucketArr = newArray
@@ -113,7 +123,7 @@ func (eht *ExtensibleHashTable) doubleArray() {
 	eht.DirectorySize = newDirectorySize
 }
 
-func (eht *ExtensibleHashTable) insert(key string) {
+func (eht *ExtensibleHashTable) insert(key int) {
 	index := eht.FNVHash(key)
 	if eht.BucketArr[index].isFull() {
 		eht.split(key)
@@ -123,7 +133,7 @@ func (eht *ExtensibleHashTable) insert(key string) {
 	}
 }
 
-func (eht *ExtensibleHashTable) find(key string) bool {
+func (eht *ExtensibleHashTable) find(key int) bool {
 	index := eht.FNVHash(key)
 	if eht.BucketArr[index].find(key) {
 		return true
@@ -131,7 +141,7 @@ func (eht *ExtensibleHashTable) find(key string) bool {
 	return false
 }
 
-func (eht *ExtensibleHashTable) remove(key string) bool {
+func (eht *ExtensibleHashTable) remove(key int) bool {
 	index := eht.FNVHash(key)
 	if eht.BucketArr[index].find(key) {
 		eht.BucketArr[index].remove(key)
@@ -141,12 +151,8 @@ func (eht *ExtensibleHashTable) remove(key string) bool {
 }
 
 // FNVOHash
-func (eht *ExtensibleHashTable) FNVHash(key string) int {
-	hash := uint32(5381)
-	for _, char := range key {
-		hash = ((hash << 5) + hash) + uint32(char) // hash * 33 + char
-	}
-	return int(hash % uint32(eht.DirectorySize))
+func (eht *ExtensibleHashTable) FNVHash(key int) int {
+	return (key * 16777619) * 37 % eht.DirectorySize
 }
 
 func (eht *ExtensibleHashTable) print() {

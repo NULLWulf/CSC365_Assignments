@@ -3,7 +3,7 @@ package main
 import "log"
 
 type Bucket struct {
-	ValueArr   []string
+	ValueArr   []int
 	LocalDepth int
 	Size       int
 }
@@ -11,9 +11,9 @@ type Bucket struct {
 func NewBucket2(bucketSize int) *Bucket {
 	ld := 1
 	sz := bucketSize
-	valueArr := make([]string, sz)
+	valueArr := make([]int, sz)
 	for i := 0; i < sz; i++ {
-		valueArr[i] = ""
+		valueArr[i] = 0
 	}
 	return &Bucket{
 		ValueArr:   valueArr,
@@ -25,9 +25,9 @@ func NewBucket2(bucketSize int) *Bucket {
 func NewBucket() *Bucket {
 	ld := 1
 	sz := 4
-	valueArr := make([]string, sz)
+	valueArr := make([]int, sz)
 	for i := 0; i < sz; i++ {
-		valueArr[i] = ""
+		valueArr[i] = 0
 	}
 	return &Bucket{
 		ValueArr:   valueArr,
@@ -44,30 +44,30 @@ func (b *Bucket) getSize() int {
 	return b.Size
 }
 
-func (b *Bucket) getArr() []string {
+func (b *Bucket) getArr() []int {
 	return b.ValueArr
 }
 
-func (b *Bucket) insert(value string) {
+func (b *Bucket) insert(value int) {
 	for i := 0; i < b.Size; i++ {
-		if b.ValueArr[i] == "" {
+		if b.ValueArr[i] == 0 {
 			b.ValueArr[i] = value
 			break
 		}
 	}
 }
 
-func (b *Bucket) remove(value string) {
+func (b *Bucket) remove(value int) {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] == value {
-			b.ValueArr[i] = ""
+			b.ValueArr[i] = 0
 			break
 		}
 	}
 }
 
 // find is a function for indicating presence of a value in a bucket
-func (b *Bucket) find(value string) bool {
+func (b *Bucket) find(value int) bool {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] == value {
 			return true
@@ -77,7 +77,7 @@ func (b *Bucket) find(value string) bool {
 }
 
 // search is a helper function for debugging
-func (b *Bucket) search(value string) {
+func (b *Bucket) search(value int) {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] == value {
 			log.Printf("Found %v at index %v", value, i)
@@ -87,7 +87,7 @@ func (b *Bucket) search(value string) {
 
 func (b *Bucket) isEmpty() bool {
 	for i := 0; i < b.Size; i++ {
-		if b.ValueArr[i] != "" {
+		if b.ValueArr[i] != 0 {
 			return false
 		}
 	}
@@ -96,7 +96,7 @@ func (b *Bucket) isEmpty() bool {
 
 func (b *Bucket) isFull() bool {
 	for i := 0; i < b.Size; i++ {
-		if b.ValueArr[i] == "" {
+		if b.ValueArr[i] == 0 {
 			return false
 		}
 	}
@@ -115,20 +115,20 @@ func (b *Bucket) sort() {
 			if b.ValueArr[j] > b.ValueArr[j+1] {
 				b.ValueArr[j], b.ValueArr[j+1] = b.ValueArr[j+1], b.ValueArr[j]
 			}
+
 		}
 	}
 }
 
-func (b *Bucket) getFirst() string {
+func (b *Bucket) getFirst() int {
 	return b.ValueArr[0]
 }
 
-func (b *Bucket) check(value string) bool {
+func (b *Bucket) check(value int) bool {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] != value {
 			return false
 		}
-
 	}
 
 	return true

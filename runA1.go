@@ -30,36 +30,24 @@ func RUNA1() {
 
 // RUN2_1 Runtime for Assignment 2 program, the loader for the service
 func RUN2_1() {
-	ReadBusinessJSON2()
-	// var KmediodsDS KmediodsDS
-	// log.Printf("Starting Kemediods Algorithm")
-	// KmediodsDS.PopClusters(BusinessesDP, 10)
-	// // Save KMedios to file
-	// log.Printf("Saving KMedios to file")
-
-	// log.Printf("Starting Assignment 2 Loader")
-
-	// Hash := NewHashMap()
-	// // Put clusters into HashMap
-	// log.Printf("Putting clusters into HashMap")
-	// for _, cluster := range KmediodsDS.Clusters {
-	// 	for _, business := range cluster.Points {
-	// 		Hash.Add(cluster.Medoid.BusinessID, business.BusinessID)
-	// 	}
-	// }
-
-	// log.Printf("Saving HashMap to file")
-	// err := Hash.SaveToFile("hashmap.json")
-	// if err != nil {
-	// 	return
-	// }
-	// Hash2, err := LoadHashMapFromFile("hashmap.json")
-	// if err != nil {
-	// 	log.Fatal("Problem loading hashmap: " + err.Error())
-	// }
-
-	// log.Printf("HashMap loaded from file and verified %d", Hash2.Size)
-	// log.Printf("Finished Assignment 2 Loader Finished")
+	BusinessesDPS := ReadBusinessJSON2()
+	var KmediodsDSA KmediodsDS
+	log.Printf("Starting Kemediods Algorithm")
+	KmediodsDSA.PopClusters(BusinessesDPS, 10)
+	log.Printf("Kemediods Algorithm Complete")
+	log.Printf("Saving KMediods to file")
+	err := KmediodsDSA.saveKMDStoDisc("kmed.bin")
+	if err != nil {
+		log.Fatal("Problem saving KMediods to disc: " + err.Error())
+	}
+	// clear km
+	KmediodsDSA = KmediodsDS{}
+	log.Printf("Loading KMediods from file")
+	err = KmediodsDSA.loadKMDStoDisc("kmed.bin")
+	if err != nil {
+		log.Fatal("Problem loading KMediods from disc: " + err.Error())
+	}
+	log.Printf("KMediods loaded from file and verified %d", len(KmediodsDSA.Clusters))
 }
 
 // RUN2_2 Runtime for Assignment 2 program, the application for the service

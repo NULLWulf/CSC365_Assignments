@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,6 +17,7 @@ import (
 
 // Reads Businesses JSON data
 func readBusinessesJson() {
+	log.Fatal("Deprecated: Use readBusinessesJson2() instead.")
 	log.Println("Loading Business JSON data...")
 	t := 0
 	// Create directory for fileblock if it does not exist
@@ -144,17 +146,28 @@ func readReviewsJsonScannner() {
 	log.Printf("Reviews Loading: %d.  Businesses before removal of nulls: %d", ReviewTotal, len(Businesses))
 }
 
-func ReadBusinessJSON2() {
+/*
+	ReadBusinessJSON2
+
+Read the Business JSON file, get the businesses that are open, have more than 100 reviews, and are restaurants.
+Then write the businesses to a JSON file, with a limit of 10000 businesses.  As it reads through the JSON file,
+it unmarshals the JSON into a Business struct, and then marshals the struct into a JSON file.
+Adds the filename to the Extensible Hash Table, which is used as a file index..  During the process,
+it also gets the relevant information from the business struct and stores it in a BusinessDataPoint struct
+for the K-medoids algorithm.
+*/
+func ReadBusinessJSON2() []BusinessDataPoint {
 	InstantiateFileBlock()
 	log.Println("Loading Business JSON data...")
-	eht := NewEHT2(1000)
 	t := 0
 	file, err := os.ReadFile("yelp_academic_dataset_business.json")
 	if err != nil {
 		log.Fatal(err)
 	}
+	eht := NewEHT2(5000)
 
-	businessIDList := make([]string, 0)
+	// businessIDList := make([]string, 0)
+	BusinessDataPoints := make([]BusinessDataPoint, 0)
 	for i := 0; i < len(file); {
 		var business Business
 		j := i
@@ -167,7 +180,7 @@ func ReadBusinessJSON2() {
 		} else {
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
 				// Write business to JSON file
-				file := fmt.Sprintf("fileblock/%s.json", business.BusinessID)
+				file := fmt.Sprintf("fileblock/%d.json", t)
 				businessFile, err := os.Create(file)
 				if err != nil {
 					log.Fatal(err)
@@ -180,28 +193,31 @@ func ReadBusinessJSON2() {
 				if err != nil {
 					log.Fatal(err)
 				}
+				var b Business
+				err = json.Unmarshal(businessJson, &b)
 				businessFile.Close()
+				BusinessDataPoints = append(BusinessDataPoints, BusinessDataPoint{BusinessID: business.BusinessID, Latitude: b.Latitude, Longitude: b.Longtitude, ReviewScore: b.Stars, FileIndex: t})
+				eht.insert(t)
+				t++
 			}
-			// eht.insert(business.BusinessID)
-			businessIDList = append(businessIDList, business.BusinessID)
-			t++
+
 		}
 		i = j + 1
 		if t == 10000 {
 			break
 		}
 	}
-	fmt.Printf("Businesses Loaded: %d.  Businesses after removal of nulls: %d)", t, eht.DirectorySize)
-	for _, id := range businessIDList {
-		//log.Printf("Index: %d, ID: %s", i, id)
-		eht.insert(id)
-	}
+
+	// Insert Business IDs into Extensible Hash Table
+	log.Printf("Businesses Loaded: %d", t)
+
 	err = eht.saveToDisk("artifacts")
 	if err != nil {
-		log.Printf("Failed to save to disk: %s", err)
-		return
+		// make custom error
+		log.Fatal(errors.New("Failed to save to disk:" + err.Error()))
 	}
-	log.Print(eht.DirectorySize)
+	log.Printf("EHT saved to disk")
+	return BusinessDataPoints
 }
 
 func ReadDirectory(url string) {

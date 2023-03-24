@@ -1,9 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"encoding/gob"
+	"log"
 	"math"
 	"math/rand"
+	"os"
 )
 
 // BusinessDataPoint represents a data point in the k-medoids clustering algorithm
@@ -12,6 +14,7 @@ type BusinessDataPoint struct {
 	Latitude    float32 `json:"latitude"`
 	Longitude   float32 `json:"longitude"`
 	ReviewScore float32 `json:"review_score"`
+	FileIndex   int     `json:"file_index"`
 }
 
 type Cluster struct {
@@ -24,9 +27,9 @@ type KmediodsDS struct {
 	Clusters []Cluster
 }
 
-func (d *KmediodsDS) PopClusters(data []BusinessDataPoint, k int) {
-	d.Clusters = make([]Cluster, k)
-	d.Clusters = KMedoids(data, k)
+func (k *KmediodsDS) PopClusters(data []BusinessDataPoint, l int) {
+	k.Clusters = make([]Cluster, l)
+	k.Clusters = KMedoids(data, l)
 }
 
 func KMedoids(data []BusinessDataPoint, k int) []Cluster {
@@ -154,29 +157,39 @@ func equal(medoids1, medoids2 []BusinessDataPoint) bool {
 	return true
 }
 
-// func kmeansTester() {
-// 	// Load businesses from JSON file
-// 	// _, businessesDP := ReadBusinessJSON2()
-
-// 	// Run k-medoids clustering algorithm
-// 	var KmediodsDS KmediodsDS
-// 	KmediodsDS.PopClusters(businessesDP, 100)
-// 	// Print out the clusters
-// 	log.Println("K-Medoids Clustering")
-// 	for i, cluster := range KmediodsDS.Clusters {
-// 		log.Printf("Cluster %d", i)
-// 		log.Printf("Medoid: %s", cluster.Medoid.BusinessID)
-// 		// log.Printf("Points:")
-// 		// for _, point := range cluster.Points {
-// 		// 	log.Printf("%s", point.BusinessID)
-// 		// }
-// 		// log.Println()
-// 	}
-
-// }
-
-func variadicLoop(Vars ...interface{}) {
-	for _, v := range Vars {
-		fmt.Println(v)
+func (k *KmediodsDS) saveKMDStoDisc(filePath string) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
 	}
+	defer file.Close()
+
+	encoder := gob.NewEncoder(file)
+	err = encoder.Encode(&k)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k *KmediodsDS) loadKMDStoDisc(filePath string) error {
+	if k == nil {
+		k = &KmediodsDS{}
+	}
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+	defer file.Close()
+
+	decoder := gob.NewDecoder(file)
+	err = decoder.Decode(&k)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	return nil
 }
