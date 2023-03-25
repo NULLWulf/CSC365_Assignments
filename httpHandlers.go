@@ -6,25 +6,32 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 // homepage Serves homepage (index.html)
-func homepage(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+func homepage(writer http.ResponseWriter, request *http.Request) {
 	log.Println("Serving homepage")
 	http.ServeFile(writer, request, "./html/homepage.html")
 }
 
 // homepage Serves homepage (index.html)
-func homepage2(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+func homepage2(writer http.ResponseWriter, request *http.Request) {
 	log.Println("Serving homepage")
 	http.ServeFile(writer, request, "./html/homepage2.html")
 }
 
 // Gets a random list of up 10 businesses and returns to front end
 // in this case the list is appended to a drop down menu.
-func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	businesses := getRandomBusinessList(10)
-	log.Printf("Serving random businesses: %d", len(businesses))
+func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Request, km *KmediodsDS) {
+	log.Printf("returnRandomBusinessListJson")
+	count := 10
+	bsDps := km.GetRandomDataPoints(count)
+	var businesses []Business
+	for _, v := range bsDps {
+		t := LoadBusinessFromFile(strconv.Itoa(v.FileIndex))
+		businesses = append(businesses, t)
+	}
 
 	jsonBytes, err := json.Marshal(businesses)
 	if err != nil {
@@ -64,8 +71,8 @@ func getRelatableBusinesses(writer http.ResponseWriter, request *http.Request, p
 	writer.Write(jsonBytes)
 }
 
-func getRelatableCluster(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	log.Printf("getRelatableCluster")
+func getRelatableCluster(writer http.ResponseWriter, request *http.Request, kmed *KmediodsDS) {
+	log.Printf("getRelatableCluster caklled for: %s", request.URL.Query().Get("business_id"))
 	businessID := request.URL.Query().Get("business_id")
 	BizMap, _ := LoadHashMapFromFile("hashmap.json")
 	a := BizMap.GetKeyList()

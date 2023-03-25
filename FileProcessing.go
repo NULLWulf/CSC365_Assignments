@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -156,7 +155,7 @@ Adds the filename to the Extensible Hash Table, which is used as a file index.. 
 it also gets the relevant information from the business struct and stores it in a BusinessDataPoint struct
 for the K-medoids algorithm.
 */
-func ReadBusinessJSON2() []BusinessDataPoint {
+func ReadBusinessJSON2() {
 	InstantiateFileBlock()
 	log.Println("Loading Business JSON data...")
 	t := 0
@@ -166,7 +165,6 @@ func ReadBusinessJSON2() []BusinessDataPoint {
 	}
 	eht := NewEHT2(5000)
 
-	// businessIDList := make([]string, 0)
 	BusinessDataPoints := make([]BusinessDataPoint, 0)
 	for i := 0; i < len(file); {
 		var business Business
@@ -210,16 +208,15 @@ func ReadBusinessJSON2() []BusinessDataPoint {
 
 	// Insert Business IDs into Extensible Hash Table
 	log.Printf("Businesses Loaded: %d", t)
-
+	// Save EHT to disk
 	err = eht.saveToDisk("artifacts")
 	if err != nil {
-		// make custom error
 		log.Fatal(errors.New("Failed to save to disk:" + err.Error()))
 	}
 	log.Printf("EHT saved to disk")
-	return BusinessDataPoints
 }
 
+// ReadDirectory reads a directory and prints out the files in the directory
 func ReadDirectory(url string) {
 
 	fileList, err := os.ReadDir(url)
@@ -232,6 +229,7 @@ func ReadDirectory(url string) {
 	}
 }
 
+// DeleteDirectory deletes a directory and all of its contents
 func DeleteDirectory(url string) {
 	err := os.RemoveAll(url)
 	if err != nil {
@@ -239,6 +237,7 @@ func DeleteDirectory(url string) {
 	}
 }
 
+// InstantiateFileBlock creates a directory for the fileblock
 func InstantiateFileBlock() {
 	// See if directory exists and if it does delete it
 	log.Printf("Instantiating fileblock directory...")
@@ -254,33 +253,30 @@ func InstantiateFileBlock() {
 	}
 }
 
+// GetRandomFileNames returns a list of random file names from a directory
 func GetRandomFileNames(dirPath string, numFiles int) ([]string, error) {
 	rand.Seed(time.Now().UnixNano()) // set random seed
-
 	// Get list of all files in directory
-	files, err := ioutil.ReadDir(dirPath)
+	files, err := os.ReadDir(dirPath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Shuffle the files randomly
-	rand.Shuffle(len(files), func(i, j int) {
-		files[i], files[j] = files[j], files[i]
-	})
-
 	// Get the names of the first `numFiles` files
 	var result []string
-	for i := 0; i < numFiles && i < len(files); i++ {
+	for i := 0; i < numFiles; i++ {
+		// random number based on length of files
+		randNum := rand.Intn(len(files))
 		if !files[i].IsDir() {
-			result = append(result, files[i].Name())
+			// remove .json from file name
+			result = append(result, files[randNum].Name()[:len(files[randNum].Name())-5])
 		}
 	}
-
 	return result, nil
 }
 
 func LoadBusinessFromFile(businessID string) Business {
-	file, err := os.ReadFile(fmt.Sprintf("fileblock/%s", businessID))
+	file, err := os.ReadFile(fmt.Sprintf("fileblock/%s.json", businessID))
 	if err != nil {
 		log.Fatal(err)
 	}

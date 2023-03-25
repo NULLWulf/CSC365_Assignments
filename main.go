@@ -15,7 +15,8 @@ func main() {
 	switch os.Args[1] {
 	case "RUN1":
 		log.Printf("Starting Assignment 1")
-		RUNA1()
+		//RUNA1()
+		RUN2_2()
 	case "RUN2_1":
 		log.Printf("Starting Assignment 2: Loader")
 		RUN2_1()

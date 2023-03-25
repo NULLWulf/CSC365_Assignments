@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/gob"
+	"fmt"
 	"log"
 	"math"
 	"math/rand"
 	"os"
+	"strconv"
 )
 
 // BusinessDataPoint represents a data point in the k-medoids clustering algorithm
@@ -25,6 +27,45 @@ type Cluster struct {
 
 type KmediodsDS struct {
 	Clusters []Cluster
+	CCount   int
+}
+
+func (k *KmediodsDS) BuildFromPSD() {
+	k.SetIfNull()
+	log.Printf("Building KmediodsDS from PSD")
+	log.Printf("Loading EHT from disk...")
+	eht, err := deserialize("artifacts")
+	if err != nil {
+		log.Fatal(err)
+	}
+	dps := make([]BusinessDataPoint, 0)
+	log.Printf("Populating BusinessDataPoints from EHT...")
+	seen := make(map[int]bool) // keep track of seen FileIndex values
+	for _, v := range eht.BucketArr {
+		for _, l := range v.ValueArr {
+			// convert number to actual string
+			a := strconv.Itoa(l)
+			b := LoadBusinessFromFile(a)
+			if seen[l] {
+				continue // skip to next iteration of inner loop
+			}
+			seen[l] = true // mark FileIndex as seen
+			dps = append(dps, BusinessDataPoint{BusinessID: b.BusinessID, Latitude: b.Latitude, Longitude: b.Longtitude, ReviewScore: b.Stars, FileIndex: l})
+		}
+	}
+	log.Printf("BusinessDataPoints loaded: %d", len(dps))
+	if k.CCount == 0 {
+		k.CCount = 10
+	}
+
+	k.PopClusters(dps, k.CCount)
+	log.Printf("KmediodsDS built from PSD")
+}
+
+func (k *KmediodsDS) SetIfNull() {
+	if k == nil {
+		k = &KmediodsDS{}
+	}
 }
 
 func (k *KmediodsDS) PopClusters(data []BusinessDataPoint, l int) {
@@ -192,4 +233,27 @@ func (k *KmediodsDS) loadKMDStoDisc(filePath string) error {
 	}
 
 	return nil
+}
+
+func (k *KmediodsDS) SetClusterCt(ct int) {
+	k.CCount = ct
+}
+
+// GetRandomDataPoints Gets a random set of points from the clusters
+func (k *KmediodsDS) GetRandomDataPoints(ct int) []BusinessDataPoint {
+	randPoints := make([]BusinessDataPoint, ct)
+	seen := make(map[string]bool)
+	for i := 0; i < ct; {
+		randCluster := k.Clusters[rand.Intn(len(k.Clusters))]
+		randPoint := randCluster.Points[rand.Intn(len(randCluster.Points))]
+		coord := fmt.Sprintf("%v,%v", randCluster, randPoint)
+		// if we have not seen this point before, add it to the list
+		if _, ok := seen[coord]; !ok {
+			seen[coord] = true
+			randPoints[i] = randPoint
+			i++
+		}
+	}
+
+	return randPoints
 }
