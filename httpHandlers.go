@@ -5,7 +5,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 )
 
@@ -70,20 +69,19 @@ func getRelatableBusinesses(writer http.ResponseWriter, request *http.Request, p
 	writer.Header().Set("Content-Type", "application/json")
 	writer.Write(jsonBytes)
 }
-
 func getRelatableCluster(writer http.ResponseWriter, request *http.Request, kmed *KmediodsDS) {
-	log.Printf("getRelatableCluster caklled for: %s", request.URL.Query().Get("file_id"))
+	log.Printf("getRelatableCluster called for: %s", request.URL.Query().Get("file_id"))
 	fileId := request.URL.Query().Get("file_id")
 	// get the cluster that the business belongs to
-
-	var selectedBiz Business
-	file, err := os.ReadFile("fileblock/" + fileId + ".json")
+	jsonBytes, err := kmed.FindSimilarBuildResponse(fileId)
 	if err != nil {
-		log.Println(err)
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	err = json.Unmarshal(file, &selectedBiz)
-	log.Printf("fileblock/%s.json: %+v", fileId, selectedBiz)
-
 	writer.Header().Set("Content-Type", "application/json")
-	//writer.Write(jsonBytes)
+	writer.Write(jsonBytes)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

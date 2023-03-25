@@ -12,86 +12,39 @@
       <p style="font-size: 14px">
         Select an item from the dropdown to get a randomly related business. The
         relation is determined by a correlation of terms found within the
-        businesses' reviews. (Both the selected, and 'related' businesses)
+        businesses' starss. (Both the selected, and 'related' businesses)
       </p>
       <select id="businesses"></select>
-      <p id="relatable">
-        Related Business 1: <span id="related1"></span><br />
-        Related Business 2: <span id="related2"></span>
-      </p>
+      <div class="details-box" style="display: none">
+        <h2>Details</h2>
+        <h3>Selected Business</h3>
+        <p id="selected-name"></p>
+        <p id="selected-city"></p>
+        <p id="selected-state"></p>
+        <p id="selected-lat"></p>
+        <p id="selected-long"></p>
+        <p id="selected-stars"></p>
+<h3>Related Business</h3>
+        <p id="related-name"></p>
+        <p id="related-city"></p>
+        <p id="related-state"></p>
+        <p id="related-lat"></p>
+        <p id="related-long"></p>
+        <p id="related-stars"></p>
+        <h3>Cluster Medoid Business</h3>
+        <p id="medoid-name"></p>
+        <p id="medoid-city"></p>
+        <p id="medoid-state"></p>
+        <p id="medoid-lat"></p>
+        <p id="medoid-long"></p>
+        <p id="medoid-stars"></p>
+      </div>
       <h2>Calculation Process</h2>
-      <ul style="margin: 10px; padding: 5px">
-        <li>
-          <b>1) Pull in Business JSON DATA:</b> First Bussiness JSON data is
-          loaded into memory as a glob.
-        </li>
-        <li>
-          <b>2) Add Bussinesses to Map: </b>Glob is then iterated through and
-          Bussinesses that are <i>Restraunts</i> and have a Review Count of at
-          least 100 are added to the map. (This value can be tweaked globally on
-          the backend
-        </li>
-        <li>
-          <b>3) Iterate Through Review JSON data: </b>Then the Review JSON file
-          is iterated through line by line. Because this JSON file is so large
-          it becomes neccesary to buffer it vs pull the entire text contents
-          into memory as I did with the Business JSON. A globally adjustable
-          limit is set to 25,000 reviews.
-        </li>
-        <li>
-          <b>4) Tokenize/Generate Raw Count: </b>For each review the Business
-          map is iterated through to attempt to find a match. When the Business
-          ID of a Review and Business match, then Review's text is then cleaned
-          of stop words, split into an array by spaces, and a raw term frequency
-          count is appended to the respective business raw term frequency count
-          map. This is a map that stores the term frequency count for a term
-          across <i>all</i> of it's respective reviews. Since I am only getting
-          term frequency counts for businesses, the review data itself is
-          volatile and does not get directly associated with the Business
-          object.
-        </li>
-        <li>
-          <b>5) Remove Null Reviews/Calculate Term frequency: </b> The business
-          is then iterated through again. If a business has reviews, then the
-          raw term frequency count is divided by the review count to get the
-          term frequency. This map is then appended to the business object.
-        </li>
-        <li>
-          <b>6) Calculate Term Frequency Inverse Document Frequency: </b> The
-          business map is then iterated through again, and the term frequency
-          inverse document frequency is calculated for each term. This is done
-          by dividing the total number of businesses by the number of businesses
-          that contain the term. The log of this value is then taken to get the
-          term frequency inverse document frequency. Then the term frequency and
-          inverse document frequency are multiplied to get a map of a
-          Businesses' terms' TF-IDF. This is then appended to the business
-          object.
-        </li>
-        <li>
-          <b>7) Sort TF-IDF for Bussinesses: </b>Businesses are then iterated
-          through and the TF-IDF map is sorted by value. The resulting TF-IDF
-          map is sorted greatest to least.
-        </li>
-        <li>
-          <b>8) Generate TermKeyMap: </b>Businesses are then iterated a final
-          time. This time each business is iterated through and the most
-          valueable terms are added to a related terms map. This map is a map of
-          arrays where the key is a term and the value is an array of business
-          IDs that contain that term. This map is used to determine which
-          businesses are related to each other.
-        </li>
-      </ul>
-      <p>
-        The result is a Map where the Key is a term, and the values at each map
-        element is an array of business IDs. The list of businesses in the drop
-        down menu is randomly generated based on the available Businesses in the
-        Business map. When selecing a business a query is performed to find the
-        2 related businesses that share a term with the selected business.
-      </p>
     </div>
 
     <script>
       let select = document.getElementById("businesses");
+      let detailsBox = document.querySelector(".details-box");
 
       // function to get random business list and populate select element
       function getBusinessList() {
@@ -104,7 +57,7 @@
               (business) => business.name.trim() !== ""
             );
             // populate select element
-            console.log(businesses)
+            console.log(businesses);
             businesses.forEach((business) => {
               let option = document.createElement("option");
 
@@ -114,7 +67,7 @@
               input.type = "hidden";
               input.name = "file_id";
               input.value = business.file_id;
-              console.log(input)
+              console.log(input);
               option.appendChild(input);
 
               select.add(option);
@@ -122,16 +75,49 @@
           })
           .catch((error) => console.error(error));
       }
+
       select.addEventListener("change", () => {
         let selectedOption = select.options[select.selectedIndex];
         let businessId = selectedOption.querySelector(
           '[name="file_id"]'
         ).value;
         fetch(`/clustered?file_id=${businessId}`)
-          console.log("Work in progress")
-      });
-      // call getBusinessList on page load
-      window.onload = getBusinessList;
-    </script>
-  </body>
-</html>
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+
+            // update the details box with the relevant information
+
+        let selectedBiz = data.business_selected;
+        let medoidBiz = data.business_medoid;
+        let relatedBiz = data.businesses_similar;
+
+        document.getElementById("selected-name").textContent = `Selected Business: ${selectedBiz.name}`;
+        document.getElementById("selected-city").textContent = `City: ${selectedBiz.city}`;
+        document.getElementById("selected-state").textContent = `State: ${selectedBiz.state}`;
+        document.getElementById("selected-lat").textContent = `Latitude: ${selectedBiz.latitude}`;
+        document.getElementById("selected-long").textContent = `Longitude: ${selectedBiz.longitude}`;
+        document.getElementById("selected-stars").textContent = `stars: ${selectedBiz.stars}`;
+
+        document.getElementById("medoid-name").textContent = `Medoid Business: ${medoidBiz.name}`;
+        document.getElementById("medoid-city").textContent = `City: ${medoidBiz.city}`;
+        document.getElementById("medoid-state").textContent = `State: ${medoidBiz.state}`;
+        document.getElementById("medoid-lat").textContent = `Latitude: ${medoidBiz.latitude}`;
+        document.getElementById("medoid-long").textContent = `Longitude: ${medoidBiz.longitude}`;
+        document.getElementById("medoid-stars").textContent = `stars: ${medoidBiz.stars}`;
+
+        document.getElementById("related-name").textContent = `Related Business: ${relatedBiz.name}`;
+        document.getElementById("related-city").textContent = `City: ${relatedBiz.city}`;
+        document.getElementById("related-state").textContent = `State: ${relatedBiz.state}`;
+        document.getElementById("related-lat").textContent = `Latitude: ${relatedBiz.latitude}`;
+        document.getElementById("related-long").textContent = `Longitude: ${relatedBiz.longitude}`;
+        document.getElementById("related-stars").textContent = `stars: ${relatedBiz.stars}`;
+
+        detailsBox.style.display = "block";
+      })
+      .catch((error) => console.error(error));
+  });
+
+  // call getBusinessList on page load
+  window.onload = getBusinessList;
+</script>

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -28,6 +29,19 @@ type Cluster struct {
 type KmediodsDS struct {
 	Clusters []Cluster
 	CCount   int
+}
+
+type SimClusterResponse struct {
+	ClusterSize int `json:"cluster_size"`
+	//MinLat      float32  `json:"min_lat"`
+	//MaxLat      float32  `json:"max_lat"`
+	//MinLong     float32  `json:"min_long"`
+	//MaxLong     float32  `json:"max_long"`
+	//MinStars    float32  `json:"min_stars"`
+	//MaxStars    float32  `json:"max_stars"`
+	Selected Business `json:"business_selected"`
+	Medoid   Business `json:"business_medoid"`
+	Similar  Business `json:"businesses_similar"`
 }
 
 func (k *KmediodsDS) BuildFromPSD() {
@@ -256,4 +270,85 @@ func (k *KmediodsDS) GetRandomDataPoints(ct int) []BusinessDataPoint {
 	}
 
 	return randPoints
+}
+
+func (kmed *KmediodsDS) FindSimilarBuildResponse(fileId string) ([]byte, error) {
+
+	var selectedBiz Business
+	file, err := os.ReadFile("fileblock/" + fileId + ".json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = json.Unmarshal(file, &selectedBiz)
+	log.Printf("fileblock/%s.json: %+v", fileId, selectedBiz)
+	// convert business to data point
+	bdps := BusinessDataPoint{
+		BusinessID:  selectedBiz.BusinessID,
+		Latitude:    selectedBiz.Latitude,
+		Longitude:   selectedBiz.Longtitude, // corrected typo: Longtitude -> Longitude
+		ReviewScore: selectedBiz.Stars,
+	}
+
+	log.Print("Finding cluster for business: ", bdps.BusinessID)
+	// set initial distance to max float32, used to hold the smallest distance
+	// between the business and the medoid of a cluster
+	var minDst float32 = math.MaxFloat32
+	// sets the cluster that is the most similar to the business
+	var simCluster Cluster
+	for k, v := range kmed.Clusters {
+		m := v.Medoid
+		eucDst := distance(bdps, m)
+		if eucDst < minDst {
+			minDst = eucDst
+			simCluster = kmed.Clusters[k]
+		}
+	}
+	log.Printf("Found similar cluster: %+v", simCluster.ID)
+
+	var minDstInCluster float32 = math.MaxFloat32
+	var simBiz Business
+
+	log.Printf("Finding business in cluster: %+v", simCluster.ID)
+	biza := simCluster.Points[0]
+	for _, bizl := range simCluster.Points {
+		dst := distance(bdps, bizl)
+		if dst < minDstInCluster && bizl.BusinessID != bdps.BusinessID {
+			minDstInCluster = dst
+			biza = bizl
+		}
+	}
+	simBiz = LoadBusinessFromFile(strconv.Itoa(biza.FileIndex))
+	log.Printf("Found similar business with Euc distnace of : %f", minDstInCluster)
+	log.Printf("Found similar business: %+v", simBiz)
+
+	// Compare Lat Long Stars of 2 Businesses
+	log.Printf("Comparing Lat Long Stars of 2 Businesses")
+	log.Printf("Selected Business: %+v", selectedBiz)
+	log.Printf("Similar Business: %+v", simBiz)
+
+	b, err := BuildRelatedClusterResponse(&selectedBiz, &simBiz, &simCluster)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func BuildRelatedClusterResponse(sim *Business, sel *Business, clus *Cluster) ([]byte, error) {
+
+	med := clus.Medoid
+	medBiz := LoadBusinessFromFile(strconv.Itoa(med.FileIndex))
+
+	resp := SimClusterResponse{
+		Similar:     *sim,
+		Selected:    *sel,
+		Medoid:      medBiz,
+		ClusterSize: len(clus.Points),
+	}
+
+	// Marshal to bytes
+	b, err := json.Marshal(resp)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
