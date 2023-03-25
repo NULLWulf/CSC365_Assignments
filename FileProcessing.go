@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -285,5 +286,6 @@ func LoadBusinessFromFile(businessID string) Business {
 	if err != nil {
 		log.Fatal(err)
 	}
+	business.FileId, _ = strconv.ParseUint(businessID, 10, 64)
 	return business
 }

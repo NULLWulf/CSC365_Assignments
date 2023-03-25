@@ -17,6 +17,7 @@ type Business struct {
 	TermFrequency    map[string]float32 `json:"-"`
 	TfIdf            map[string]float32 `json:"-"`
 	XValTerms        []string           `json:"-"`
+	FileId           uint64             `json:"file_id"`
 }
 
 type Review struct {

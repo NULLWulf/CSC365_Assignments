@@ -72,51 +72,18 @@ func getRelatableBusinesses(writer http.ResponseWriter, request *http.Request, p
 }
 
 func getRelatableCluster(writer http.ResponseWriter, request *http.Request, kmed *KmediodsDS) {
-	log.Printf("getRelatableCluster caklled for: %s", request.URL.Query().Get("business_id"))
-	businessID := request.URL.Query().Get("business_id")
-	BizMap, _ := LoadHashMapFromFile("hashmap.json")
-	a := BizMap.GetKeyList()
+	log.Printf("getRelatableCluster caklled for: %s", request.URL.Query().Get("file_id"))
+	fileId := request.URL.Query().Get("file_id")
+	// get the cluster that the business belongs to
 
 	var selectedBiz Business
-	file, err := os.ReadFile("fileblock/" + businessID + ".json")
+	file, err := os.ReadFile("fileblock/" + fileId + ".json")
 	if err != nil {
 		log.Println(err)
 	}
 	err = json.Unmarshal(file, &selectedBiz)
-	log.Printf("fileblock/%s.json: %+v", businessID, selectedBiz)
-
-	// get the cluster of the selected business
-	relatab := make(map[string]float32)
-	for i := 0; i < len(a); i++ {
-		file, err := os.ReadFile("fileblock/" + a[i] + ".json")
-		if err != nil {
-			log.Println(err)
-		}
-		var b Business
-		err = json.Unmarshal(file, &b)
-		if err != nil {
-			log.Println(err)
-		}
-		relatab[b.BusinessID] = distance(
-			BusinessDataPoint{
-				BusinessID:  selectedBiz.BusinessID,
-				ReviewScore: selectedBiz.Stars,
-				Latitude:    selectedBiz.Latitude,
-				Longitude:   selectedBiz.Longtitude,
-			},
-			BusinessDataPoint{
-				BusinessID:  b.BusinessID,
-				ReviewScore: b.Stars,
-				Latitude:    b.Latitude,
-				Longitude:   b.Longtitude,
-			},
-		)
-	}
-
-	var jsonBytes []byte
-	jsonBytes, err = json.Marshal(relatab)
-	log.Printf("jsonBytes: %+v", string(jsonBytes))
+	log.Printf("fileblock/%s.json: %+v", fileId, selectedBiz)
 
 	writer.Header().Set("Content-Type", "application/json")
-	writer.Write(jsonBytes)
+	//writer.Write(jsonBytes)
 }

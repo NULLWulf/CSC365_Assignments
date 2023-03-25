@@ -112,9 +112,11 @@
               option.text = business.name;
               let input = document.createElement("input");
               input.type = "hidden";
-              input.name = "business_id";
-              input.value = business.id;
+              input.name = "file_id";
+              input.value = business.file_id;
+              console.log(input)
               option.appendChild(input);
+
               select.add(option);
             });
           })
@@ -123,65 +125,11 @@
       select.addEventListener("change", () => {
         let selectedOption = select.options[select.selectedIndex];
         let businessId = selectedOption.querySelector(
-          '[name="business_id"]'
+          '[name="file_id"]'
         ).value;
-        fetch(`/clustered?business_id=${businessId}`)
+        fetch(`/clustered?file_id=${businessId}`)
           console.log("Work in progress")
-          // .then(response => response.json())
-			// 	.then(data => {
-			// 		// Create an array of x, y, and z values
-			// 		const xData = data.map(d => d.x);
-			// 		const yData = data.map(d => d.y);
-			// 		const zData = data.map(d => d.z);
-          //
-			// 		// Define a function to map Z values to colors
-			// 		function mapValueToColor(value, min, max) {
-			// 			const range = max - min;
-			// 			const colorRange = 255;
-			// 			const ratio = (value - min) / range;
-			// 			const r = Math.floor((1 - ratio) * colorRange);
-			// 			const b = Math.floor(ratio * colorRange);
-			// 			return `rgba(${r}, 0, ${b}, 1)`;
-			// 		}
-          //
-			// 		// Create a new Chart.js chart
-			// 		const ctx = document.getElementById('myChart').getContext('2d');
-			// 		new Chart(ctx, {
-			// 			type: 'scatter',
-			// 			data: {
-			// 				datasets: [
-			// 					{
-			// 						label: 'Z',
-			// 						data: data,
-			// 						pointBackgroundColor: zData.map(z => mapValueToColor(z, 0, 5)),
-			// 						pointRadius: 10,
-			// 						pointHoverRadius: 15,
-			// 					},
-			// 				],
-			// 			},
-			// 			options: {
-			// 				responsive: true,
-			// 				maintainAspectRatio: false,
-			// 				scales: {
-			// 					xAxes: [{
-			// 						scaleLabel: {
-			// 							display: true,
-			// 							labelString: 'X',
-			// 						},
-			// 					}],
-			// 					yAxes: [{
-			// 						scaleLabel: {
-			// 							display: true,
-			// 							labelString: 'Y',
-			// 						},
-			// 					}],
-			// 				},
-			// 			},
-			// 		});
-			// 	});
-      })
-      ;
-
+      });
       // call getBusinessList on page load
       window.onload = getBusinessList;
     </script>
