@@ -366,3 +366,71 @@ func (k *KmediodsDS) PopClusters(data []BusinessDataPoint, l int) {
 	k.Clusters = make([]Cluster, l)
 	k.Clusters = KMedoids(data, l)
 }
+
+func KMedoids(data []BusinessDataPoint, k int) []Cluster {
+	// Initialize medoids randomly
+	medoids := make([]BusinessDataPoint, k)
+	// get random k values to service as initial comparison points
+	for i := 0; i < k; i++ {
+		medoids[i] = data[rand.Intn(len(data))]
+	}
+
+	// Initialize clusters
+	clusters := make([]Cluster, k)
+	for i, medoid := range medoids {
+		clusters[i].Medoid = medoid
+	}
+
+	// Initialize variables for convergence check
+	oldMedoids := make([]BusinessDataPoint, k)
+	firstIteration := true
+
+	// Repeat until convergence
+	for {
+		// Assign each point to the closest medoid and update medoids
+		for i, point := range data {
+			minDist := math.MaxFloat32
+			var closestMedoid BusinessDataPoint
+			var clusterIndex int
+			for j, medoid := range medoids {
+				dist := distance(point, medoid)
+				if float64(dist) < minDist {
+					minDist = float64(dist)
+					closestMedoid = medoid
+					clusterIndex = j
+				}
+			}
+			clusters[clusterIndex].Points = append(clusters[clusterIndex].Points, point)
+
+			// Update medoid for this cluster
+			minCost := math.MaxFloat32
+			var newMedoid BusinessDataPoint
+			for _, p := range clusters[clusterIndex].Points {
+				cost := computeCost(clusters[clusterIndex].Points, p)
+				if float64(cost) < minCost {
+					minCost = float64(cost)
+					newMedoid = p
+				}
+			}
+			medoids[clusterIndex] = newMedoid
+			clusters[clusterIndex].Medoid = newMedoid
+		}
+
+		// Check for convergence
+		if !firstIteration && equal(medoids, oldMedoids) {
+			break
+		}
+		copy(oldMedoids, medoids)
+
+		// Reset cluster points for next iteration
+		for i := range clusters {
+			clusters[i].Points = make([]BusinessDataPoint, 0)
+		}
+
+		// Update flag and loop variables
+		firstIteration = false
+	}
+
+	return clusters
+}
+
