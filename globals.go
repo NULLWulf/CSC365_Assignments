@@ -1,5 +1,10 @@
 package main
 
+/*
+ * This file contains all the global variables and structs used in the program
+ * But is not all inclusive of the program.
+ */
+
 type Business struct {
 	BusinessID       string             `json:"business_id"`
 	Name             string             `json:"name"`
@@ -9,12 +14,15 @@ type Business struct {
 	ReviewCount      int                `json:"review_count"`
 	IsOpen           int                `json:"is_open"`
 	Categories       string             `json:"categories"`
-	CategoriesArr    []string           `json:"categories_arr" nil:"true"`
-	ReviewTermsCount map[string]int     `json:"review_terms_count"`
-	TermCountTotal   int                `json:"term_count_total"`
-	TermFrequency    map[string]float32 `json:"term_frequency"`
-	TfIdf            map[string]float32 `json:"tf_idf"`
-	XValTerms        []string
+	CategoriesArr    []string           `json:"-"`
+	Latitude         float32            `json:"latitude"`
+	Longtitude       float32            `json:"longitude"`
+	ReviewTermsCount map[string]int     `json:"-"`
+	TermCountTotal   int                `json:"-"`
+	TermFrequency    map[string]float32 `json:"-"`
+	TfIdf            map[string]float32 `json:"-"`
+	XValTerms        []string           `json:"-"`
+	FileId           uint64             `json:"file_id"`
 }
 
 type Review struct {
@@ -44,10 +52,10 @@ type bizTuple struct {
 var (
 	Businesses            = make(map[string]Business)
 	TermDocumentFrequency = make(map[string]int)
-	ReviewTotal           = 1000000
+	ReviewTotal           = 50000
 	BusinessKeyMap        []string
-	ReviewCount           = 25
-	RelatibilityMod       = 0.10 //TermKeyMap            = make(map[string][]string)
+	ReviewCount           = 50
+	RelatibilityMod       = 0.25 //TermKeyMap            = make(map[string][]string)
 	TermKeyMap            = NewHashMap()
 )
 

@@ -109,11 +109,15 @@ func addMostRelevantTermsKeyMap() {
 // Called by HTTP handler for returning a random list of businesses to select from
 func getRandomBusinessList(n int) []bizTuple {
 	randomBizList := make([]bizTuple, 0, n)
-	for i := 0; i < n; i++ {
+	randomBizFiles, err := GetRandomFileNames("fileblock", n)
+	log.Printf("Random files: %v\n", randomBizFiles)
+	if err != nil {
+		log.Println("Error getting random file names: ", err)
+	}
 
-		r := rand.Intn(len(Businesses) - 1)
-		keyMapIdx := BusinessKeyMap[r]
-		randomBizList = append(randomBizList, bizTuple{Businesses[keyMapIdx].Name, Businesses[keyMapIdx].BusinessID})
+	for i := 0; i < n; i++ {
+		a := LoadBusinessFromFile(randomBizFiles[i])
+		randomBizList = append(randomBizList, bizTuple{a.Name, a.BusinessID})
 	}
 	log.Printf("Random businesses: %v\n", randomBizList)
 	return randomBizList

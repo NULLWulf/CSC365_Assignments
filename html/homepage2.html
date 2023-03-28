@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="../css/homepage.css" />
+    <script src="../js/homepage.js" defer></script>
+    <meta charset="UTF-8" />
+    <title>Yelp Similarity Tester</title>
+  </head>
+  <body>
+    <div style="width: 50%; font-size: 14px">
+      <h1>Yelp Dataset Recommendation Engine</h1>
+      <p style="font-size: 14px">
+        Select an item from the dropdown to get a randomly related business. Upon selection details of the selected business will appears
+        along with its related business within a cluster and the cluster's medoid.  Businesses are clustered based on their location and
+        star rating.  The related business is the business within the cluster that is closest to the selected business.  The medoid is the
+        business within the cluster that is closest to all other businesses in the cluster.  This statistical method is known as k-medoids.
+      </p>
+      <select id="businesses"></select>
+      <div class="details-box" style="display: none">
+        <h2>Cluster Details</h2>
+      <p id="cluster-size"></p>
+        <h3>Selected Business</h3>
+        <p id="selected-name"></p>
+        <p id="selected-city"></p>
+        <p id="selected-state"></p>
+        <p id="selected-lat"></p>
+        <p id="selected-long"></p>
+        <p id="selected-stars"></p>
+        <h3>Related Business</h3>
+        <p id="related-name"></p>
+        <p id="related-city"></p>
+        <p id="related-state"></p>
+        <p id="related-lat"></p>
+        <p id="related-long"></p>
+        <p id="related-stars"></p>
+        <h3>Medoid Business</h3>
+        <p id="medoid-name"></p>
+        <p id="medoid-city"></p>
+        <p id="medoid-state"></p>
+        <p id="medoid-lat"></p>
+        <p id="medoid-long"></p>
+        <p id="medoid-stars"></p>
+      </div>
+      <h2>Calculation Process</h2>
+      <h3>Application</h3>
+      <ul>
+        <li>1) Loads Yelp Dataset of Businesses, iterates through line by line getting Restaurant businesses with a minimum of 100
+          reviews, meanwhile it saves each business as a file and adds the filename to a Extensible Hash Table (EHT) which in this case 
+          is used as a file index.  The EHT is then serialized and saved to disk.</li>
+        </li>
+        <li>2) The K-Medoids Statistical component is executed, the EHT is loaded and deserialized.  Then the EHT is iterated through the
+          business files are loaded and converted to a vector of the business's location and star rating.  The K-Medoids algorithm is started
+          iterating through the dataset to create k-number of clusters (in this case just 10)
+        </li>
+        <li>
+          3) As a result of the algorithm, a 2D array like data structure is returned with some bookkeeping information each
+          dimension.  The first dimension is the cluster number and also contains the file name for the medoid of cluster
+          and the second dimension is the business file name along with metric information such as latitude, longitude, and
+          and stars.  This data structured is then serialized and saved to disk.
+        </li>
+      </ul>
+      <h3>Loader</h3>
+      <ul>
+        <li>1) Loads the serialized K-Medoids data structure from disk and deserializes it.</li>
+        <li>2) Server is started on port 7500 to serve random business list and respond with related clusters</li>
+        <li>3) Upon selection of a business, business id is sent to back end, filename is retrieved from EHT, and file is loaded
+          as business object.
+        </li>
+        <li>4) Using the lat, long and stars of the business a Calculation is performed on each saved cluster medoid to determine which cluster the
+          selected business belongs to.  The cluster is then loaded and the selected business is compared to each business in the cluster
+          to determine which business is the closest to the selected business.  The closest business is then returned to the front end, along with selected
+          and medoid business for the given cluster. 
+        </li>
+
+      </ul>
+
+    </div>
+
+    <script>
+      let select = document.getElementById("businesses");
+      let detailsBox = document.querySelector(".details-box");
+
+      // function to get random business list and populate select element
+      function getBusinessList() {
+        fetch("/random")
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+            // filter out empty values
+            let businesses = data.filter(
+              (business) => business.name.trim() !== ""
+            );
+            // populate select element
+            console.log(businesses);
+            businesses.forEach((business) => {
+              let option = document.createElement("option");
+
+              option.value = business.name;
+              option.text = business.name;
+              let input = document.createElement("input");
+              input.type = "hidden";
+              input.name = "file_id";
+              input.value = business.file_id;
+              console.log(input);
+              option.appendChild(input);
+
+              select.add(option);
+            });
+          })
+          .catch((error) => console.error(error));
+      }
+
+      select.addEventListener("change", () => {
+        let selectedOption = select.options[select.selectedIndex];
+        let businessId = selectedOption.querySelector(
+          '[name="file_id"]'
+        ).value;
+        fetch(`/clustered?file_id=${businessId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+
+            // update the details box with the relevant information
+
+        let selectedBiz = data.business_selected;
+        let medoidBiz = data.business_medoid;
+        let relatedBiz = data.businesses_similar;
+        let clusterSize = data.cluster_size;
+
+        document.getElementById("selected-name").textContent = `Selected Business: ${selectedBiz.name}`;
+        document.getElementById("selected-city").textContent = `City: ${selectedBiz.city}`;
+        document.getElementById("selected-state").textContent = `State: ${selectedBiz.state}`;
+        document.getElementById("selected-lat").textContent = `Latitude: ${selectedBiz.latitude}`;
+        document.getElementById("selected-long").textContent = `Longitude: ${selectedBiz.longitude}`;
+        document.getElementById("selected-stars").textContent = `stars: ${selectedBiz.stars}`;
+
+        document.getElementById("medoid-name").textContent = `Medoid Business: ${medoidBiz.name}`;
+        document.getElementById("medoid-city").textContent = `City: ${medoidBiz.city}`;
+        document.getElementById("medoid-state").textContent = `State: ${medoidBiz.state}`;
+        document.getElementById("medoid-lat").textContent = `Latitude: ${medoidBiz.latitude}`;
+        document.getElementById("medoid-long").textContent = `Longitude: ${medoidBiz.longitude}`;
+        document.getElementById("medoid-stars").textContent = `stars: ${medoidBiz.stars}`;
+
+        document.getElementById("related-name").textContent = `Related Business: ${relatedBiz.name}`;
+        document.getElementById("related-city").textContent = `City: ${relatedBiz.city}`;
+        document.getElementById("related-state").textContent = `State: ${relatedBiz.state}`;
+        document.getElementById("related-lat").textContent = `Latitude: ${relatedBiz.latitude}`;
+        document.getElementById("related-long").textContent = `Longitude: ${relatedBiz.longitude}`;
+        document.getElementById("related-stars").textContent = `stars: ${relatedBiz.stars}`;
+        document.getElementById("cluster-size").textContent = `Cluster Size: ${clusterSize}`;
+
+        detailsBox.style.display = "block";
+      })
+      .catch((error) => console.error(error));
+  });
+
+  // call getBusinessList on page load
+  window.onload = getBusinessList;
+</script>

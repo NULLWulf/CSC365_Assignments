@@ -1,11 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"math/rand"
+	"os"
 )
 
-const initialSize = 8 // initial size of the hash map
+/*
+This Hashmap was used in Assignment 1 but is not used in Assignment 2
+*/
+
+const initialSize = 8 // initial Size of the hash map
 
 // Node represents a key-value pair stored in the hash map
 type Node struct {
@@ -21,7 +27,7 @@ type HashMap struct {
 	buckets  []*Node
 }
 
-// NewHashMap creates a new hash map with the specified initial size
+// NewHashMap creates a new hash map with the specified initial Size
 func NewHashMap() *HashMap {
 	return &HashMap{
 		size:     0,
@@ -121,6 +127,18 @@ func (hm *HashMap) resize() {
 	hm.buckets = newBuckets
 }
 
+func (hm *HashMap) GetKeyList() []string {
+	keyList := make([]string, 0)
+	for i := 0; i < hm.capacity; i++ {
+		node := hm.buckets[i]
+		for node != nil {
+			keyList = append(keyList, node.key)
+			node = node.next
+		}
+	}
+	return keyList
+}
+
 // PrintKeys prints all keys in the hash map
 func (hm *HashMap) PrintKeys() {
 	for i := 0; i < hm.capacity; i++ {
@@ -130,4 +148,64 @@ func (hm *HashMap) PrintKeys() {
 			node = node.next
 		}
 	}
+}
+
+func (hm *HashMap) PrintValues() {
+	for i := 0; i < hm.capacity; i++ {
+		node := hm.buckets[i]
+		for node != nil {
+			log.Println(node.values)
+			node = node.next
+		}
+	}
+}
+
+func (hm *HashMap) SaveToFile(filename string) error {
+	// Convert the hashmap to a map[string][]string to make it easier to encode to JSON
+	data := make(map[string][]string)
+	for _, node := range hm.buckets {
+		for node != nil {
+			data[node.key] = node.values
+			node = node.next
+		}
+	}
+
+	// Encode the data to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// Write the data to the file
+	err = os.WriteFile(filename, jsonData, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func LoadHashMapFromFile(filename string) (*HashMap, error) {
+	// Read the JSON data from the file
+	jsonData, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	// Decode the JSON data into a map[string][]string
+	data := make(map[string][]string)
+	err = json.Unmarshal(jsonData, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a new HashMap and populate it with the data
+	hm := NewHashMap()
+	for key, values := range data {
+		for _, value := range values {
+			hm.Add(key, value)
+		}
+	}
+
+	return hm, nil
 }
