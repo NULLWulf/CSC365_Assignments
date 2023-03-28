@@ -179,6 +179,8 @@ func (eht *ExtensibleHashTable) saveToDisk(filePath string) error {
 	return nil
 }
 
+// deserialize deserializes the ExtensibleHashTable from the given file path
+
 func deserialize(filePath string) (*ExtensibleHashTable, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
