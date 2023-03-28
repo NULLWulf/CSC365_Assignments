@@ -8,7 +8,7 @@ import (
 )
 
 /*
-This Hashmap was used in Assignment 1 but is no used in Assignment 2
+This Hashmap was used in Assignment 1 but is not used in Assignment 2
 */
 
 const initialSize = 8 // initial Size of the hash map

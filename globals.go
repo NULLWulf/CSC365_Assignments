@@ -1,5 +1,10 @@
 package main
 
+/*
+ * This file contains all the global variables and structs used in the program
+ * But is not all inclusive of the program.
+ */
+
 type Business struct {
 	BusinessID       string             `json:"business_id"`
 	Name             string             `json:"name"`

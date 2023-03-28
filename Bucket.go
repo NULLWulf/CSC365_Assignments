@@ -8,6 +8,7 @@ type Bucket struct {
 	Size       int
 }
 
+// NewBucket2  - Constructor for Bucket when size is known
 func NewBucket2(bucketSize int) *Bucket {
 	ld := 1
 	sz := bucketSize
@@ -22,6 +23,7 @@ func NewBucket2(bucketSize int) *Bucket {
 	}
 }
 
+// NewBucket - Constructor for Bucket
 func NewBucket() *Bucket {
 	ld := 1
 	sz := 4
@@ -36,18 +38,22 @@ func NewBucket() *Bucket {
 	}
 }
 
+// getLD Method for getting local depth of a bucket
 func (b *Bucket) getLD() int {
 	return b.LocalDepth
 }
 
+// getLD Method for getting local depth of a bucket
 func (b *Bucket) getSize() int {
 	return b.Size
 }
 
+// getLD Method for getting local depth of a bucket
 func (b *Bucket) getArr() []int {
 	return b.ValueArr
 }
 
+// insert is a Method for inserting a value in a bucket
 func (b *Bucket) insert(value int) {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] == 0 {
@@ -57,6 +63,7 @@ func (b *Bucket) insert(value int) {
 	}
 }
 
+// remove is a method for removing a value in a bucket
 func (b *Bucket) remove(value int) {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] == value {
@@ -66,7 +73,7 @@ func (b *Bucket) remove(value int) {
 	}
 }
 
-// find is a function for indicating presence of a value in a bucket
+// find is a Method for indicating presence of a value in a bucket
 func (b *Bucket) find(value int) bool {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] == value {
@@ -76,7 +83,7 @@ func (b *Bucket) find(value int) bool {
 	return false
 }
 
-// search is a helper function for debugging
+// search is a helper Method for debugging
 func (b *Bucket) search(value int) {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] == value {
@@ -85,6 +92,7 @@ func (b *Bucket) search(value int) {
 	}
 }
 
+// isEmpty is a Method for indicating if a bucket is empty
 func (b *Bucket) isEmpty() bool {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] != 0 {
@@ -94,6 +102,7 @@ func (b *Bucket) isEmpty() bool {
 	return true
 }
 
+// IsFull is a Method for indicating if a bucket is full
 func (b *Bucket) isFull() bool {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] == 0 {
@@ -103,12 +112,14 @@ func (b *Bucket) isFull() bool {
 	return true
 }
 
+// display is a helper Method for debugging
 func (b *Bucket) display() {
 	for i := 0; i < b.Size; i++ {
 		log.Printf("Index %v: %v", i, b.ValueArr[i])
 	}
 }
 
+// sort is a helper Method for debugging
 func (b *Bucket) sort() {
 	for i := 0; i < b.Size; i++ {
 		for j := 0; j < b.Size-i-1; j++ {
@@ -120,10 +131,12 @@ func (b *Bucket) sort() {
 	}
 }
 
+// getFirst is a method for getting the first value of a bucket
 func (b *Bucket) getFirst() int {
 	return b.ValueArr[0]
 }
 
+// check is a method for seeing if a value exists ina  bucket
 func (b *Bucket) check(value int) bool {
 	for i := 0; i < b.Size; i++ {
 		if b.ValueArr[i] != value {

@@ -147,14 +147,11 @@ func readReviewsJsonScannner() {
 }
 
 /*
-	ReadBusinessJSON2
-
+ReadBusinessJSON2
 Read the Business JSON file, get the businesses that are open, have more than 100 reviews, and are restaurants.
 Then write the businesses to a JSON file, with a limit of 10000 businesses.  As it reads through the JSON file,
 it unmarshals the JSON into a Business struct, and then marshals the struct into a JSON file.
-Adds the filename to the Extensible Hash Table, which is used as a file index..  During the process,
-it also gets the relevant information from the business struct and stores it in a BusinessDataPoint struct
-for the K-medoids algorithm.
+Adds the filename to the Extensible Hash Table, which is used as a file index.
 */
 func ReadBusinessJSON2() {
 	InstantiateFileBlock()
@@ -166,7 +163,6 @@ func ReadBusinessJSON2() {
 	}
 	eht := NewEHT2(5000)
 
-	BusinessDataPoints := make([]BusinessDataPoint, 0)
 	for i := 0; i < len(file); {
 		var business Business
 		j := i
@@ -175,7 +171,7 @@ func ReadBusinessJSON2() {
 		}
 		err := json.Unmarshal(file[i:j], &business)
 		if err != nil {
-			log.Println("Business ignored: ", err)
+			log.Println("Business ignored due to unmarshalling error: ", err)
 		} else {
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
 				// Write business to JSON file
@@ -195,19 +191,19 @@ func ReadBusinessJSON2() {
 				var b Business
 				err = json.Unmarshal(businessJson, &b)
 				businessFile.Close()
-				BusinessDataPoints = append(BusinessDataPoints, BusinessDataPoint{BusinessID: business.BusinessID, Latitude: b.Latitude, Longitude: b.Longtitude, ReviewScore: b.Stars, FileIndex: t})
 				eht.insert(t)
 				t++
 			}
 
 		}
 		i = j + 1
+		// break at 10k found businesses
 		if t == 10000 {
 			break
 		}
 	}
 
-	// Insert Business IDs into Extensible Hash Table
+	// Insert Generated Filenames into EHT
 	log.Printf("Businesses Loaded: %d", t)
 	// Save EHT to disk
 	err = eht.saveToDisk("artifacts")
@@ -219,7 +215,6 @@ func ReadBusinessJSON2() {
 
 // ReadDirectory reads a directory and prints out the files in the directory
 func ReadDirectory(url string) {
-
 	fileList, err := os.ReadDir(url)
 	if err != nil {
 		log.Printf("Failed to read directory")
@@ -238,7 +233,8 @@ func DeleteDirectory(url string) {
 	}
 }
 
-// InstantiateFileBlock creates a directory for the fileblock
+// InstantiateFileBlock creates a directory for the fileblock, if
+// the directory already exists, it deletes the directory and creates a new one
 func InstantiateFileBlock() {
 	// See if directory exists and if it does delete it
 	log.Printf("Instantiating fileblock directory...")
@@ -255,6 +251,7 @@ func InstantiateFileBlock() {
 }
 
 // GetRandomFileNames returns a list of random file names from a directory
+// Used in serving a list of random businesses to the the frontend
 func GetRandomFileNames(dirPath string, numFiles int) ([]string, error) {
 	rand.Seed(time.Now().UnixNano()) // set random seed
 	// Get list of all files in directory
@@ -276,6 +273,7 @@ func GetRandomFileNames(dirPath string, numFiles int) ([]string, error) {
 	return result, nil
 }
 
+// LoadBusinessFromFile loads a business from a JSON file
 func LoadBusinessFromFile(businessID string) Business {
 	file, err := os.ReadFile(fmt.Sprintf("fileblock/%s.json", businessID))
 	if err != nil {
