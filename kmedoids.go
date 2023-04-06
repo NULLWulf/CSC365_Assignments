@@ -13,11 +13,12 @@ import (
 
 // BusinessDataPoint represents a data point in the k-medoids clustering algorithm
 type BusinessDataPoint struct {
-	BusinessID  string  `json:"business_id"`
-	Latitude    float32 `json:"latitude"`
-	Longitude   float32 `json:"longitude"`
-	ReviewScore float32 `json:"review_score"`
-	FileIndex   int     `json:"file_index"`
+	BusinessID       string                `json:"business_id"`
+	Latitude         float32               `json:"latitude"`
+	Longitude        float32               `json:"longitude"`
+	ReviewScore      float32               `json:"review_score"`
+	FileIndex        int                   `json:"file_index"`
+	ClosestNeighbors [4]*BusinessDataPoint `json:"closest_neighbors"`
 }
 
 type Cluster struct {
@@ -75,7 +76,11 @@ func (k *KmediodsDS) BuildFromPSD() {
 
 // KMedoids performs k-medoids clustering on the given data set
 // and returns the resulting clusters
-func KMedoids(data []BusinessDataPoint, k int) []Cluster {
+// Note I am well aware we can get rid of the redundant block of code
+// for the purposes of cleanliness but it still does work.  If I re-use
+// this in a later function Ill go back and clean this up.  Essentially
+// to do that we'd need a flag in loop to handle the initial iteration
+func KMedoids2(data []BusinessDataPoint, k int) []Cluster {
 	// Initialize medoids randomly
 	medoids := make([]BusinessDataPoint, k)
 	// get random k values to service as initial comparison points
@@ -85,7 +90,7 @@ func KMedoids(data []BusinessDataPoint, k int) []Cluster {
 
 	// Assign each point to the closest medoid
 	clusters := make([]Cluster, k)
-	// Set the temporary cluster medoids to the randomly selected medoids
+	// Set the temporary cluster medoids to the randomly selected medoids``
 	for i, medoid := range medoids {
 		clusters[i].Medoid = medoid
 	}
@@ -281,9 +286,11 @@ func BuildRelatedClusterResponse(sim *Business, sel *Business, clus *Cluster) ([
 	return b, nil
 }
 
+// distance - As of assignment uses Haversine distance, but for other data use Euclidean distance
 func distance(p1, p2 BusinessDataPoint) float32 {
 	// Euclidean distance between two points
-	return float32(math.Sqrt(math.Pow(float64(p1.Latitude-p2.Latitude), 2) + math.Pow(float64(p1.Longitude-p2.Longitude), 2) + math.Pow(float64(p1.ReviewScore-p2.ReviewScore), 2)))
+	//return float32(math.Sqrt(math.Pow(float64(p1.Latitude-p2.Latitude), 2) + math.Pow(float64(p1.Longitude-p2.Longitude), 2) + math.Pow(float64(p1.ReviewScore-p2.ReviewScore), 2)))
+	return haversineDistance(p1, p2)
 }
 
 func computeCost(cluster []BusinessDataPoint, point BusinessDataPoint) float32 {
@@ -368,69 +375,89 @@ func (k *KmediodsDS) PopClusters(data []BusinessDataPoint, l int) {
 }
 
 func KMedoids(data []BusinessDataPoint, k int) []Cluster {
-	// Initialize medoids randomly
 	medoids := make([]BusinessDataPoint, k)
-	// get random k values to service as initial comparison points
-	for i := 0; i < k; i++ {
-		medoids[i] = data[rand.Intn(len(data))]
-	}
-
-	// Initialize clusters
 	clusters := make([]Cluster, k)
-	for i, medoid := range medoids {
-		clusters[i].Medoid = medoid
-	}
 
-	// Initialize variables for convergence check
-	oldMedoids := make([]BusinessDataPoint, k)
 	firstIteration := true
 
-	// Repeat until convergence
 	for {
-		// Assign each point to the closest medoid and update medoids
-		for i, point := range data {
+		if firstIteration {
+			// Initialize medoids randomly on the first iteration
+			for i := 0; i < k; i++ {
+				medoids[i] = data[rand.Intn(len(data))]
+			}
+			firstIteration = false
+		} else {
+			// Update medoids by computing the cost of each point in each cluster
+			// and selecting the point with the lowest cost as the new medoid
+			for i := 0; i < k; i++ {
+				minCost := math.MaxFloat32
+				var newMedoid BusinessDataPoint
+				for _, point := range clusters[i].Points {
+					cost := computeCost(clusters[i].Points, point)
+					if float64(cost) < minCost {
+						minCost = float64(cost)
+						newMedoid = point
+					}
+				}
+				medoids[i] = newMedoid
+			}
+		}
+
+		// Store old medoids for convergence checking
+		oldMedoids := make([]BusinessDataPoint, k)
+		copy(oldMedoids, medoids)
+
+		// Reset clusters and assign medoids
+		clusters = make([]Cluster, k)
+		for i, medoid := range medoids {
+			clusters[i].Medoid = medoid
+		}
+
+		// Assign each point to the closest medoid
+		for _, point := range data {
 			minDist := math.MaxFloat32
 			var closestMedoid BusinessDataPoint
-			var clusterIndex int
-			for j, medoid := range medoids {
+			for _, medoid := range medoids {
 				dist := distance(point, medoid)
 				if float64(dist) < minDist {
 					minDist = float64(dist)
 					closestMedoid = medoid
-					clusterIndex = j
 				}
 			}
+			clusterIndex := findIndex(medoids, closestMedoid)
 			clusters[clusterIndex].Points = append(clusters[clusterIndex].Points, point)
-
-			// Update medoid for this cluster
-			minCost := math.MaxFloat32
-			var newMedoid BusinessDataPoint
-			for _, p := range clusters[clusterIndex].Points {
-				cost := computeCost(clusters[clusterIndex].Points, p)
-				if float64(cost) < minCost {
-					minCost = float64(cost)
-					newMedoid = p
-				}
-			}
-			medoids[clusterIndex] = newMedoid
-			clusters[clusterIndex].Medoid = newMedoid
 		}
 
 		// Check for convergence
-		if !firstIteration && equal(medoids, oldMedoids) {
+		if equal(medoids, oldMedoids) {
 			break
 		}
-		copy(oldMedoids, medoids)
-
-		// Reset cluster points for next iteration
-		for i := range clusters {
-			clusters[i].Points = make([]BusinessDataPoint, 0)
-		}
-
-		// Update flag and loop variables
-		firstIteration = false
 	}
 
 	return clusters
 }
 
+func toRadians(degrees float64) float64 {
+	return degrees * (math.Pi / 180)
+}
+
+func haversineDistance(p1, p2 BusinessDataPoint) float32 {
+	const earthRadiusKm = 6371.0 // Earth's radius in km
+
+	// Convert latitudes and longitudes from degrees to radians
+	lat1 := toRadians(float64(p1.Latitude))
+	lat2 := toRadians(float64(p2.Latitude))
+	lon1 := toRadians(float64(p1.Longitude))
+	lon2 := toRadians(float64(p2.Longitude))
+
+	// Compute Haversine formula
+	deltaLat := lat2 - lat1
+	deltaLon := lon2 - lon1
+	a := math.Pow(math.Sin(deltaLat/2), 2) + math.Cos(lat1)*math.Cos(lat2)*math.Pow(math.Sin(deltaLon/2), 2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	// Calculate the distance in km
+	distanceKm := earthRadiusKm * c
+	return float32(distanceKm)
+}

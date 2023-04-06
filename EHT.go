@@ -101,7 +101,7 @@ func (eht *ExtensibleHashTable) split(key int) {
 	eht.BucketArr[newIndex] = newBucket
 
 	var indexSameConnection int
-	// Update local depth of bucket with same connection
+	// Update local depth
 	if newIndex >= eht.DirectorySize/2 {
 		indexSameConnection = newIndex - int(math.Pow(2, float64(eht.GlobalDepth-1)))
 	} else {
@@ -151,10 +151,7 @@ func (eht *ExtensibleHashTable) insert(key int) {
 // find method for finding a value in the EHT
 func (eht *ExtensibleHashTable) find(key int) bool {
 	index := eht.FNVHash(key)
-	if eht.BucketArr[index].find(key) {
-		return true
-	}
-	return false
+	return eht.BucketArr[index].find(key)
 }
 
 // remove method for removing a value from the EHT

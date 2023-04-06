@@ -84,11 +84,6 @@ func readBusinessesJson() {
 		}
 	}
 	log.Printf("Businesses Loaded: %d", t)
-	// businessMap := NewEHT2(10)
-	// for _, id := range businessIDList {
-	// 	businessMap.insert(id)
-	// }
-	// log.Println("Businesses Loaded: ", businessMap.DirectorySize)
 
 }
 
@@ -161,7 +156,7 @@ func ReadBusinessJSON2() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	eht := NewEHT2(5000)
+	eht := NewEHT2(5000) //instantiate hashmap
 
 	for i := 0; i < len(file); {
 		var business Business
@@ -188,8 +183,6 @@ func ReadBusinessJSON2() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				var b Business
-				err = json.Unmarshal(businessJson, &b)
 				businessFile.Close()
 				eht.insert(t)
 				t++
