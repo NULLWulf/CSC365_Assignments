@@ -12,6 +12,7 @@ func RUN2_1() {
 	ReadBusinessJSON2()
 	k := KmediodsDS{}
 	k.BuildFromPSD()
+	k.BuildGraphFromKM()
 	err := k.saveKMDStoDisc("kmed.bin")
 	if err != nil {
 		return

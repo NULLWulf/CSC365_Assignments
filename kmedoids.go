@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -347,4 +348,55 @@ func KMedoids(data []BusinessDataPoint, k int) []Cluster {
 	// TODO - Add 4 closest businesses to each data point
 
 	return clusters
+}
+
+func (k *KmediodsDS) BuildGraphFromKM() interface{} {
+
+	log.Printf("Building graph from KMediods data structure...")
+	// Create a graph
+	graph := NewGraph()
+
+	log.Printf("Adding nodes to graph...")
+	for _, c := range k.Clusters {
+		for _, p := range c.Points {
+			graph.AddNode(p.FileIndex, c.Medoid.FileIndex, p)
+		}
+	}
+
+	// Calculate 4 closest geographical points to each point, and create edges between them
+	log.Printf("Adding edges to graph...")
+	for i, c := range k.Clusters {
+		log.Printf("Adding edges for cluster %d, cluste size %d", i, len(c.Points))
+		for _, p := range c.Points {
+			// temporay sorted list of elements in cluster
+			temp := make([]BusinessDataPoint, len(c.Points))
+			copy(temp, c.Points)
+			// Sort the list by distance
+			sort.Slice(temp, func(i, j int) bool {
+				return distance(p, temp[i]) < distance(p, temp[j])
+			})
+			temp = temp[1:5]
+			for _, t := range temp {
+				graph.AddEdge(p.FileIndex, t.FileIndex, jaccardSimilarity(&p, &t))
+				graph.AddEdge(t.FileIndex, p.FileIndex, jaccardSimilarity(&p, &t))
+			}
+		}
+		if i == 0 {
+			log.Printf("First cluster edges added, breaking...")
+			break
+		}
+	}
+
+	// Running Djikstra's algorithm on the graph
+	log.Printf("Running Djikstra's algorithm on graph...")
+	// Run Djstrika to root on every point
+	log.Printf("Root point: %d", k.Clusters[0].Medoid.FileIndex)
+	for _, v := range k.Clusters[0].Points {
+		log.Printf("Running Djikstra's algorithm on point %d", v.FileIndex)
+		keys, distance := graph.DijkstraShortestPath(v.FileIndex, k.Clusters[0].Medoid.FileIndex)
+		log.Printf("Djikstra's algorithm finished, keys: %v, distance: %v", keys, distance)
+	}
+
+	graph.SaveGraph()
+	return nil
 }

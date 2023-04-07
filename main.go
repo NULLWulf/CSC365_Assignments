@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, os.Kill, syscall.SIGKILL)
 
