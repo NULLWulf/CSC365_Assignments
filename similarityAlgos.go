@@ -175,3 +175,30 @@ func haversineDistance(p1, p2 BusinessDataPoint) float32 {
 	distanceKm := earthRadiusKm * c
 	return float32(distanceKm)
 }
+
+func jaccardSimilarity(b1, b2 *BusinessDataPoint) float64 {
+	set1 := make(map[string]bool)
+	for _, category := range b1.Categories {
+		set1[category] = true
+	}
+
+	set2 := make(map[string]bool)
+	for _, category := range b2.Categories {
+		set2[category] = true
+	}
+
+	intersection := 0
+	for category := range set1 {
+		if set2[category] {
+			intersection++
+		}
+	}
+
+	union := len(set1) + len(set2) - intersection
+
+	if union == 0 {
+		return 0.0
+	}
+
+	return float64(intersection) / float64(union)
+}

@@ -19,6 +19,7 @@ type BusinessDataPoint struct {
 	ReviewScore      float32               `json:"review_score"`
 	FileIndex        int                   `json:"file_index"`
 	ClosestNeighbors [4]*BusinessDataPoint `json:"closest_neighbors"`
+	Categories       []string              `json:"category"`
 }
 
 type Cluster struct {
@@ -62,7 +63,12 @@ func (k *KmediodsDS) BuildFromPSD() {
 				continue // skip to next iteration of inner loop
 			}
 			seen[l] = true // mark FileIndex as seen
-			dps = append(dps, BusinessDataPoint{BusinessID: b.BusinessID, Latitude: b.Latitude, Longitude: b.Longtitude, ReviewScore: b.Stars, FileIndex: l})
+			dps = append(dps, BusinessDataPoint{BusinessID: b.BusinessID,
+				Latitude:    b.Latitude,
+				Longitude:   b.Longtitude,
+				ReviewScore: b.Stars,
+				FileIndex:   l,
+				Categories:  b.CategoriesArr})
 		}
 	}
 	log.Printf("BusinessDataPoints loaded: %d", len(dps))
@@ -202,7 +208,7 @@ func computeCost(cluster []BusinessDataPoint, point BusinessDataPoint) float32 {
 func findIndex(medoids []BusinessDataPoint, medoid BusinessDataPoint) int {
 	// Find the index of a medoid in the list of medoids
 	for i, m := range medoids {
-		if m == medoid {
+		if isEqualBusinessDataPoint(m, medoid) {
 			return i
 		}
 	}
@@ -212,9 +218,16 @@ func findIndex(medoids []BusinessDataPoint, medoid BusinessDataPoint) int {
 func equal(medoids1, medoids2 []BusinessDataPoint) bool {
 	// Check if two lists of medoids are equal
 	for i, m := range medoids1 {
-		if m != medoids2[i] {
+		if !isEqualBusinessDataPoint(m, medoids2[i]) {
 			return false
 		}
+	}
+	return true
+}
+
+func isEqualBusinessDataPoint(p1, p2 BusinessDataPoint) bool {
+	if p1.BusinessID != p2.BusinessID || p1.Latitude != p2.Latitude || p1.Longitude != p2.Longitude || p1.ReviewScore != p2.ReviewScore || p1.FileIndex != p2.FileIndex {
+		return false
 	}
 	return true
 }
