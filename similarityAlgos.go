@@ -151,3 +151,27 @@ func findRelatableBusinesses(businessID string) []Business {
 	relatableBusinesses = append(relatableBusinesses, Businesses[bid2])
 	return relatableBusinesses
 }
+
+func toRadians(degrees float64) float64 {
+	return degrees * (math.Pi / 180)
+}
+
+func haversineDistance(p1, p2 BusinessDataPoint) float32 {
+	const earthRadiusKm = 6371.0 // Earth's radius in km
+
+	// Convert latitudes and longitudes from degrees to radians
+	lat1 := toRadians(float64(p1.Latitude))
+	lat2 := toRadians(float64(p2.Latitude))
+	lon1 := toRadians(float64(p1.Longitude))
+	lon2 := toRadians(float64(p2.Longitude))
+
+	// Compute Haversine formula
+	deltaLat := lat2 - lat1
+	deltaLon := lon2 - lon1
+	a := math.Pow(math.Sin(deltaLat/2), 2) + math.Cos(lat1)*math.Cos(lat2)*math.Pow(math.Sin(deltaLon/2), 2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	// Calculate the distance in km
+	distanceKm := earthRadiusKm * c
+	return float32(distanceKm)
+}

@@ -15,78 +15,6 @@ import (
 	"github.com/bbalet/stopwords"
 )
 
-// Reads Businesses JSON data
-func readBusinessesJson() {
-	log.Fatal("Deprecated: Use readBusinessesJson2() instead.")
-	log.Println("Loading Business JSON data...")
-	t := 0
-	// Create directory for fileblock if it does not exist
-	err := os.MkdirAll("fileblock", 0777)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Bussiness ID list
-	var businessIDList []string
-	// Read the file containing business information
-	file, err := os.ReadFile(businessPath) // Reads entire file to file object
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Businesses Loaded: %d", len(file))
-	for i := 0; i < len(file); {
-		var business Business // temporary Business variable
-		j := i
-		for j < len(file) && file[j] != '\n' {
-			j++
-		}
-		err := json.Unmarshal(file[i:j], &business)
-		if err != nil {
-			log.Println("Business ignored: ", err)
-		} else {
-			// Get businesses
-			// go func() {
-			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > ReviewCount {
-
-				replaceSlash := strings.ReplaceAll(business.Categories, "\u0026", ",")
-				replaceSlash = strings.ReplaceAll(replaceSlash, "/", ", ")
-
-				business.CategoriesArr = strings.Split(replaceSlash, ", ")
-
-				// Write business to JSON file
-				file := fmt.Sprintf("fileblock/%d.json", t)
-				businessFile, err := os.Create(file)
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer businessFile.Close()
-
-				businessJson, err := json.Marshal(business)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				_, err = businessFile.Write(businessJson)
-				if err != nil {
-					log.Fatal(err)
-				}
-				businessIDList = append(businessIDList, business.BusinessID)
-
-				t++
-
-			}
-			// }()
-
-		}
-		i = j + 1
-		if t == 10 {
-			break
-		}
-	}
-	log.Printf("Businesses Loaded: %d", t)
-
-}
-
 // Reads through the reviews JSON file.  When a review is found for a bussiness it removes
 // stop words from the text, splits the text into an array, and adds the term to a raw
 // count frequency map for the review's respective business.
@@ -170,6 +98,10 @@ func ReadBusinessJSON2() {
 		} else {
 			if business.IsOpen != 0 && strings.Contains(business.Categories, "Restaurants") && business.ReviewCount > 100 {
 				// Write business to JSON file
+				replaceSlash := strings.ReplaceAll(business.Categories, "\u0026", ",")
+				replaceSlash = strings.ReplaceAll(replaceSlash, "/", ", ")
+
+				business.CategoriesArr = strings.Split(replaceSlash, ", ")
 				file := fmt.Sprintf("fileblock/%d.json", t)
 				businessFile, err := os.Create(file)
 				if err != nil {

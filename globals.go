@@ -14,7 +14,7 @@ type Business struct {
 	ReviewCount      int                `json:"review_count"`
 	IsOpen           int                `json:"is_open"`
 	Categories       string             `json:"categories"`
-	CategoriesArr    []string           `json:"-"`
+	CategoriesArr    []string           `json:"categories_arr"`
 	Latitude         float32            `json:"latitude"`
 	Longtitude       float32            `json:"longitude"`
 	ReviewTermsCount map[string]int     `json:"-"`
