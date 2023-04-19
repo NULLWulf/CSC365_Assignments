@@ -176,3 +176,34 @@ func LoadGraph() *Graph {
 
 	return &g
 }
+
+func (g *Graph) find(parent []int, i int) int {
+	if parent[i] == -1 {
+		return i
+	}
+	return g.find(parent, parent[i])
+}
+
+func (g *Graph) Union() int {
+	n := len(g.Nodes)
+	parent := make([]int, n)
+	for i := 0; i < n; i++ {
+		parent[i] = -1
+	}
+	for _, node := range g.Nodes {
+		root1 := g.find(parent, node.Key)
+		for _, edge := range node.Edges {
+			root2 := g.find(parent, edge.To.Key)
+			if root1 != root2 {
+				parent[root1] = root2
+			}
+		}
+	}
+	count := 0
+	for i := 0; i < n; i++ {
+		if parent[i] == -1 {
+			count++
+		}
+	}
+	return count
+}
