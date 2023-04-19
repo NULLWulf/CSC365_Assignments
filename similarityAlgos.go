@@ -176,6 +176,7 @@ func haversineDistance(p1, p2 BusinessDataPoint) float32 {
 	return float32(distanceKm)
 }
 
+// jaccardSimilarity
 func jaccardSimilarity(b1, b2 *BusinessDataPoint) float64 {
 	set1 := make(map[string]bool)
 	for _, category := range b1.Categories {
