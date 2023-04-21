@@ -400,5 +400,6 @@ func (k *KmediodsDS) BuildGraphFromKM() interface{} {
 
 	//graph.SaveGraph()
 	log.Printf("Disjoint Sets %d", graph.UnionFind())
+	graph.serialize()
 	return nil
 }

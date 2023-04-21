@@ -2,8 +2,10 @@ package main
 
 import (
 	"container/heap"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 )
 
 type Graph struct {
@@ -175,33 +177,52 @@ func (g *Graph) UnionFind() int {
 	return count
 }
 
-func (g *Graph) KruskalMST() {
-	n := len(g.Nodes)
-	parent := make([]int, n)
-	for i := 0; i < n; i++ {
-		parent[i] = -1
-	}
-	edges := []*Edge{}
-	for _, node := range g.Nodes {
-		for _, edge := range node.Edges {
-			edges = append(edges, edge)
+type tNode struct {
+	Key   int
+	Value interface{}
+	Edges []*tEdge
+	Root  int
+}
+
+type tEdge struct {
+	ToKey  int
+	Weight float64
+}
+
+func (g *Graph) serialize() {
+	nodes := make([]tNode, len(g.Nodes))
+	for i, n := range g.Nodes {
+		// temp node
+		tn := tNode{
+			Key:   n.Key,
+			Value: n.Value,
+			Edges: make([]*tEdge, len(n.Edges)),
+			Root:  n.Root,
 		}
-	}
-	// sort edges
-	for i := 0; i < len(edges); i++ {
-		for j := i + 1; j < len(edges); j++ {
-			if edges[i].Weight > edges[j].Weight {
-				edges[i], edges[j] = edges[j], edges[i]
+
+		// iterate over each edge and create a temp edge for it
+		for j, e := range n.Edges {
+			te := &tEdge{
+				ToKey:  e.To.Key,
+				Weight: e.Weight,
 			}
+			tn.Edges[j] = te
 		}
+
+		// add the temp node to the slice of nodes
+		nodes[i] = tn
 	}
-	// add edges
-	for _, edge := range edges {
-		root1 := g.find(parent, edge.To.Key)
-		root2 := g.find(parent, edge.To.Key)
-		if root1 != root2 {
-			parent[root1] = root2
-			fmt.Printf("Edge: %d -> %d, Weight: %f)\n", edge.To.Key, edge.To.Key, edge.Weight)
-		}
+
+	// Serialize the slice of nodes
+	b, err := json.Marshal(nodes)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	// Write the serialized nodes to a file
+	err = os.WriteFile("graph.json", b, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("node: %v\n", len(nodes))
 }
