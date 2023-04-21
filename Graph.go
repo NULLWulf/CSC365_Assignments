@@ -2,10 +2,8 @@ package main
 
 import (
 	"container/heap"
-	"encoding/gob"
-	"encoding/json"
+	"fmt"
 	"log"
-	"os"
 )
 
 type Graph struct {
@@ -87,7 +85,7 @@ func (h *nodeHeap) Pop() interface{} {
 	return item
 }
 
-func (g *Graph) DijkstraShortestPath(startKey, targetKey int) ([]int, float64) {
+func (g *Graph) DijkstraShortestPath(startKey, targetKey int) ([]int, float64, error) {
 	// Create a min-heap to store nodes with their minimum distance
 	minHeap := &nodeHeap{}
 	heap.Init(minHeap)
@@ -127,6 +125,10 @@ func (g *Graph) DijkstraShortestPath(startKey, targetKey int) ([]int, float64) {
 			}
 		}
 	}
+	// Check if we've found a path to the target node
+	if _, ok := prevNodes[targetKey]; !ok {
+		return nil, 0, fmt.Errorf("target node %d not found in graph", targetKey)
+	}
 
 	// Reconstruct the shortest path from start node to target node
 	path := []int{}
@@ -139,43 +141,7 @@ func (g *Graph) DijkstraShortestPath(startKey, targetKey int) ([]int, float64) {
 
 	path = append([]int{startKey}, path...)
 
-	return path, distances[targetKey]
-}
-
-// SaveGraph the grab as a gob
-func (g *Graph) SaveGraph() {
-	// save the graph as a gob
-	gob.Register(BusinessDataPoint{})
-	f, err := os.Create("graph.gob")
-	if err != nil {
-		log.Fatal("create file: ", err)
-	}
-	defer f.Close()
-
-	enc := gob.NewEncoder(f)
-	err = enc.Encode(g)
-	if err != nil {
-		log.Fatal("encode error: ", err)
-	}
-}
-
-// LoadGraph the graph as a gob
-func LoadGraph() *Graph {
-	gob.Register(BusinessDataPoint{})
-	f, err := os.Open("graph.gob")
-	if err != nil {
-		log.Fatal("open file: ", err)
-	}
-	defer f.Close()
-
-	dec := gob.NewDecoder(f)
-	var g Graph
-	err = dec.Decode(&g)
-	if err != nil {
-		log.Fatal("decode error: ", err)
-	}
-
-	return &g
+	return path, distances[targetKey], nil
 }
 
 func (g *Graph) find(parent []int, i int) int {
@@ -185,7 +151,7 @@ func (g *Graph) find(parent []int, i int) int {
 	return g.find(parent, parent[i])
 }
 
-func (g *Graph) Union() int {
+func (g *Graph) UnionFind() int {
 	n := len(g.Nodes)
 	parent := make([]int, n)
 	for i := 0; i < n; i++ {
@@ -209,29 +175,33 @@ func (g *Graph) Union() int {
 	return count
 }
 
-// Serialize serializes the given Graph struct into a JSON-encoded byte slice
-func (g *Graph) Serialize(filePath string) error {
-	serialized, err := json.Marshal(g)
-	if err != nil {
-		return err
+func (g *Graph) KruskalMST() {
+	n := len(g.Nodes)
+	parent := make([]int, n)
+	for i := 0; i < n; i++ {
+		parent[i] = -1
 	}
-	err = os.WriteFile(filePath, serialized, 0644)
-	if err != nil {
-		return err
+	edges := []*Edge{}
+	for _, node := range g.Nodes {
+		for _, edge := range node.Edges {
+			edges = append(edges, edge)
+		}
 	}
-	return nil
-}
-
-// Deserialize deserializes the given file into a Graph struct using JSON decoding
-func Deserialize(filePath string) (Graph, error) {
-	var g Graph
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		return Graph{}, err
+	// sort edges
+	for i := 0; i < len(edges); i++ {
+		for j := i + 1; j < len(edges); j++ {
+			if edges[i].Weight > edges[j].Weight {
+				edges[i], edges[j] = edges[j], edges[i]
+			}
+		}
 	}
-	err = json.Unmarshal(data, &g)
-	if err != nil {
-		return Graph{}, err
+	// add edges
+	for _, edge := range edges {
+		root1 := g.find(parent, edge.To.Key)
+		root2 := g.find(parent, edge.To.Key)
+		if root1 != root2 {
+			parent[root1] = root2
+			fmt.Printf("Edge: %d -> %d, Weight: %f)\n", edge.To.Key, edge.To.Key, edge.Weight)
+		}
 	}
-	return g, nil
 }

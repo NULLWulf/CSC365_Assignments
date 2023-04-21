@@ -10,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"time"
 )
 
 // BusinessDataPoint represents a data point in the k-medoids clustering algorithm
@@ -378,12 +379,26 @@ func (k *KmediodsDS) BuildGraphFromKM() interface{} {
 			temp = temp[1:5]
 			for _, t := range temp {
 				graph.AddEdge(p.FileIndex, t.FileIndex, jaccardSimilarity(&p, &t))
-				//graph.AddEdge(t.FileIndex, p.FileIndex, jaccardSimilarity(&p, &t))
+				graph.AddEdge(t.FileIndex, p.FileIndex, jaccardSimilarity(&p, &t))
 			}
 		}
 	}
 
-	graph.SaveGraph()
-	log.Printf("Disjoint Sets %d", graph.Union())
+	// Iterate through each luster, get a random point and perform a djsktra algorithm
+	// to find the shortest path to each other point in the cluster
+	log.Printf("Performing djikstra algorithm...")
+	for _, c := range k.Clusters {
+		rand.Seed(time.Now().UnixNano())
+		randIndex := rand.Intn(len(c.Points))
+		l, w, e := graph.DijkstraShortestPath(c.Points[randIndex].FileIndex, c.Medoid.FileIndex)
+		if e != nil {
+			log.Printf("Error performing djikstra algorithm: %s", e.Error())
+			continue
+		}
+		log.Printf("Shortest path from %d to %d is %d, weight %f", c.Points[randIndex].FileIndex, c.Medoid.FileIndex, l, w)
+	}
+
+	//graph.SaveGraph()
+	log.Printf("Disjoint Sets %d", graph.UnionFind())
 	return nil
 }
