@@ -378,25 +378,12 @@ func (k *KmediodsDS) BuildGraphFromKM() interface{} {
 			temp = temp[1:5]
 			for _, t := range temp {
 				graph.AddEdge(p.FileIndex, t.FileIndex, jaccardSimilarity(&p, &t))
-				graph.AddEdge(t.FileIndex, p.FileIndex, jaccardSimilarity(&p, &t))
+				//graph.AddEdge(t.FileIndex, p.FileIndex, jaccardSimilarity(&p, &t))
 			}
 		}
-		if i == 0 {
-			log.Printf("First cluster edges added, breaking...")
-			break
-		}
-	}
-
-	// Running Djikstra's algorithm on the graph
-	log.Printf("Running Djikstra's algorithm on graph...")
-	// Run Djstrika to root on every point
-	log.Printf("Root point: %d", k.Clusters[0].Medoid.FileIndex)
-	for _, v := range k.Clusters[0].Points {
-		log.Printf("Running Djikstra's algorithm on point %d", v.FileIndex)
-		keys, distance := graph.DijkstraShortestPath(v.FileIndex, k.Clusters[0].Medoid.FileIndex)
-		log.Printf("Djikstra's algorithm finished, keys: %v, distance: %v", keys, distance)
 	}
 
 	graph.SaveGraph()
+	log.Printf("Disjoint Sets %d", graph.Union())
 	return nil
 }

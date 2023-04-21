@@ -3,6 +3,7 @@ package main
 import (
 	"container/heap"
 	"encoding/gob"
+	"encoding/json"
 	"log"
 	"os"
 )
@@ -206,4 +207,31 @@ func (g *Graph) Union() int {
 		}
 	}
 	return count
+}
+
+// Serialize serializes the given Graph struct into a JSON-encoded byte slice
+func (g *Graph) Serialize(filePath string) error {
+	serialized, err := json.Marshal(g)
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(filePath, serialized, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Deserialize deserializes the given file into a Graph struct using JSON decoding
+func Deserialize(filePath string) (Graph, error) {
+	var g Graph
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return Graph{}, err
+	}
+	err = json.Unmarshal(data, &g)
+	if err != nil {
+		return Graph{}, err
+	}
+	return g, nil
 }
