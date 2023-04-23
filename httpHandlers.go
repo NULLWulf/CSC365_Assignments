@@ -51,6 +51,30 @@ func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Requ
 	}
 }
 
+// Gets a random list of up 10 businesses and returns to front end from the graph data structure
+func returnRandomBusinessListJsonFromGraph(w http.ResponseWriter, r *http.Request, graph *Graph) {
+	log.Printf("returnRandomBusinessListJson")
+
+	var businesses []Business
+	for _, v := range bsDps {
+		t := LoadBusinessFromFile(strconv.Itoa(v.FileIndex))
+		businesses = append(businesses, t)
+	}
+
+	jsonBytes, err := json.Marshal(businesses)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(jsonBytes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 // Takes businesses id received from front end and calls find ofRelatableBusiness functions
 // and returns 2 reletable businesses to front end.  Used in Assignment 1.
 func getRelatableBusinesses(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {

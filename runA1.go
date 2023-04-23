@@ -38,9 +38,9 @@ func RUN2_2() {
 	router.GET("/", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		homepage2(w, r)
 	}) // Services index.html
-	//router.GET("/random", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	//	returnRandomBusinessListJson(w, r, kmed)
-	//}) // Handler for random Businesses list
+	router.GET("/random", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		returnRandomBusinessListJsonFromGraph(w, r, graph)
+	}) // Handler for random Businesses list
 	router.GET("/random", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		performDjstrika(w, r, graph)
 	}) // Handler for random Businesses list
