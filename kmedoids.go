@@ -346,7 +346,6 @@ func KMedoids(data []BusinessDataPoint, k int) []Cluster {
 			break
 		}
 	}
-	// TODO - Add 4 closest businesses to each data point
 
 	return clusters
 }

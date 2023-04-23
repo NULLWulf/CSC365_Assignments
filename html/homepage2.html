@@ -50,13 +50,14 @@
         </li>
         <li>2) The K-Medoids Statistical component is executed, the EHT is loaded and deserialized.  Then the EHT is iterated through the
           business files are loaded and converted to a vector of the business's location and star rating.  The K-Medoids algorithm is started
-          iterating through the dataset to create k-number of clusters (in this case just 10)
+          iterating through the dataset to create k-number of clusters (in this case just 10).  The K-medoids uses the
+          Haversine formula to calculate the distance between two points on a sphere.  The Haversine formula is used to calculate the d
+            distance between each business and the medoid of each cluster.  The business is then assigned to the cluster with the closest medoid.
         </li>
         <li>
-          3) As a result of the algorithm, a 2D array like data structure is returned with some bookkeeping information each
-          dimension.  The first dimension is the cluster number and also contains the file name for the medoid of cluster
-          and the second dimension is the business file name along with metric information such as latitude, longitude, and
-          and stars.  This data structured is then serialized and saved to disk.
+          3) As a result of the algorithm, a 2D Array Data structure of clusters is created.  Each cluster contains a list of businesses that
+            belong to the cluster and a medoid business that is the closest to all other businesses in the cluster.  At this time
+          the cluters and businesses are iterated through and a Haver
         </li>
       </ul>
       <h3>Loader</h3>

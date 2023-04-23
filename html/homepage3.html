@@ -46,7 +46,7 @@
       <h3>Application</h3>
       <ul>
         <li>1) Loads Yelp Dataset of Businesses, iterates through line by line getting Restaurant businesses with a minimum of 100
-          reviews, meanwhile it saves each business as a file and adds the filename to a Extensible Hash Table (EHT) which in this case 
+          reviews, meanwhile it saves each business as a file and adds the filename to a Extensible Hash Table (EHT) which in this case
           is used as a file index.  The EHT is then serialized and saved to disk.</li>
         </li>
         <li>2) The K-Medoids Statistical component is executed, the EHT is loaded and deserialized.  Then the EHT is iterated through the
@@ -59,6 +59,18 @@
           and the second dimension is the business file name along with metric information such as latitude, longitude, and
           and stars.  This data structured is then serialized and saved to disk.
         </li>
+        <li>
+          4) Afterwards using the K-medoids data structure the elements are iterated through and added to a graph data structure as a node.  Then
+          the nodes are iterated through again, a sort is performed against a temporary copy of the node's respective cluster, and edges
+          are set to the 4 closet neighbours as a result of the sort.  (Look for elements 1-4 since 0 would be the node itself).
+          Edge weighting calculation is performed using the Jacard Set Similarity Coefficient.
+        </li>
+        <li>
+          Lastly a Union Find is performed on the graph data structure to determine the number of disjoint sets after the edges have been set.
+          The graph is then deserialized and saved to disk.
+        </li>
+
+
       </ul>
       <h3>Loader</h3>
       <ul>
