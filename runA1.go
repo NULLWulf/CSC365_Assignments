@@ -23,23 +23,28 @@ func RUN2_1() {
 }
 
 func RUN2_2() {
-	var kmed = &KmediodsDS{}
-	err := kmed.loadKMDStoDisc("kmed.bin")
+	//log.Printf("Starting Assignment 2 Application")
+	//var kmed = &KmediodsDS{}
+	//err := kmed.loadKMDStoDisc("kmed.bin")
+	log.Printf("Kmediods data structure loaded from disc")
+	graph, err := deserializeGraph()
+	log.Printf("Graph data structure loaded from disc")
 	log.Printf("Kmediods data structure loaded from disc")
 	if err != nil {
 		log.Fatal("Problem loading kmediods data structure: " + err.Error())
 	}
-	log.Printf("Starting Assignment 2 Application")
+	log.Printf("Starting Assignment 3 Application")
 	router := httprouter.New() // Create HTTP router
 	router.GET("/", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		homepage2(w, r)
 	}) // Services index.html
+	//router.GET("/random", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	//	returnRandomBusinessListJson(w, r, kmed)
+	//}) // Handler for random Businesses list
 	router.GET("/random", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		returnRandomBusinessListJson(w, r, kmed)
+		performDjstrika(w, r, graph)
 	}) // Handler for random Businesses list
-	router.GET("/clustered", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		getRelatableCluster(w, r, kmed)
-	}) // Handler for Relatable Businesses
+
 	log.Printf("Listening on port 7500")
 	err = http.ListenAndServe(":7500", router)
 	if err != nil {

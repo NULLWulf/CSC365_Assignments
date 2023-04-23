@@ -20,6 +20,11 @@ func homepage2(writer http.ResponseWriter, request *http.Request) {
 	http.ServeFile(writer, request, "./html/homepage2.html")
 }
 
+func performDjstrika(w http.ResponseWriter, r *http.Request, graph *Graph) {
+	fileId := r.URL.Query().Get("file_id")
+	log.Printf("performDjstrika called for: %s", fileId)
+}
+
 // Gets a random list of up 10 businesses and returns to front end
 // in this case the list is appended to a drop-down menu.  Used in Assignment 1 and 2
 func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Request, km *KmediodsDS) {

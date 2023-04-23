@@ -226,3 +226,51 @@ func (g *Graph) serialize() {
 	}
 	log.Printf("node: %v\n", len(nodes))
 }
+
+func deserializeGraph() (*Graph, error) {
+	// Read the contents of the serialized file
+	b, err := os.ReadFile("graph.json")
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the serialized nodes into a slice of temp nodes
+	var tnodes []tNode
+	err = json.Unmarshal(b, &tnodes)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a new Graph object
+	graph := &Graph{
+		Nodes: make(map[int]*gNode),
+	}
+
+	// Create a gNode object for each temp node and add it to the Nodes map
+	for _, tn := range tnodes {
+		gn := &gNode{
+			Key:   tn.Key,
+			Value: tn.Value,
+			Edges: make([]*Edge, len(tn.Edges)),
+			Root:  tn.Root,
+		}
+
+		graph.Nodes[tn.Key] = gn
+	}
+
+	// Create Edge objects for each temp edge and add them to the Edges slice of the corresponding gNode
+	for _, tn := range tnodes {
+		from := graph.Nodes[tn.Key]
+
+		for j, te := range tn.Edges {
+			to := graph.Nodes[te.ToKey]
+			e := &Edge{
+				To:     to,
+				Weight: te.Weight,
+			}
+			from.Edges[j] = e
+		}
+	}
+
+	return graph, nil
+}
