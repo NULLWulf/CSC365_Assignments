@@ -23,9 +23,6 @@ func RUN2_1() {
 }
 
 func RUN2_2() {
-	//log.Printf("Starting Assignment 2 Application")
-	//var kmed = &KmediodsDS{}
-	//err := kmed.loadKMDStoDisc("kmed.bin")
 	log.Printf("Kmediods data structure loaded from disc")
 	graph, err := deserializeGraph()
 	log.Printf("Graph data structure loaded from disc")
@@ -41,8 +38,8 @@ func RUN2_2() {
 	router.GET("/random", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		returnRandomBusinessListJsonFromGraph(w, r, graph)
 	}) // Handler for random Businesses list
-	router.GET("/random", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		performDjstrika(w, r, graph)
+	router.GET("/dijkstra", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		performDijkstra(w, r, graph)
 	}) // Handler for random Businesses list
 
 	log.Printf("Listening on port 7500")

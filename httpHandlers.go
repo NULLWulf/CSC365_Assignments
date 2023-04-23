@@ -17,12 +17,25 @@ func homepage(writer http.ResponseWriter, request *http.Request) {
 // homepage Serves homepage (index.html)
 func homepage2(writer http.ResponseWriter, request *http.Request) {
 	log.Println("Serving homepage")
-	http.ServeFile(writer, request, "./html/homepage2.html")
+	http.ServeFile(writer, request, "./html/homepage3.html")
 }
 
-func performDjstrika(w http.ResponseWriter, r *http.Request, graph *Graph) {
+func performDijkstra(w http.ResponseWriter, r *http.Request, graph *Graph) {
 	fileId := r.URL.Query().Get("file_id")
 	log.Printf("performDjstrika called for: %s", fileId)
+
+	// Convert string to int
+	fileIdInt, _ := strconv.Atoi(fileId)
+	// convert
+	root := graph.Nodes[fileIdInt].Root
+
+	elements, weight, error := graph.DijkstraShortestPath(fileIdInt, root)
+	if error != nil {
+		log.Printf("Error in DijkstraShortestPath: %v", error)
+	} else {
+		log.Printf("DijkstraShortestPath returned: %v, %v", elements, weight)
+	}
+
 }
 
 // Gets a random list of up 10 businesses and returns to front end
@@ -55,9 +68,12 @@ func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Requ
 func returnRandomBusinessListJsonFromGraph(w http.ResponseWriter, r *http.Request, graph *Graph) {
 	log.Printf("returnRandomBusinessListJson")
 
+	// get 10 random elements from the graph
+	fileIdx := graph.getRandomPoints(50)
+
 	var businesses []Business
-	for _, v := range bsDps {
-		t := LoadBusinessFromFile(strconv.Itoa(v.FileIndex))
+	for _, v := range fileIdx {
+		t := LoadBusinessFromFile(strconv.Itoa(v))
 		businesses = append(businesses, t)
 	}
 

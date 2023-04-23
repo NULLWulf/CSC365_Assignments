@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 )
 
 type Graph struct {
@@ -23,6 +25,25 @@ type Edge struct {
 	To     *gNode
 	Weight float64
 }
+
+type tNode struct {
+	Key   int
+	Value interface{}
+	Edges []*tEdge
+	Root  int
+}
+
+type tEdge struct {
+	ToKey  int
+	Weight float64
+}
+
+type nodeDist struct {
+	nodeKey int
+	dist    float64
+}
+
+type nodeHeap []*nodeDist
 
 func (g *Graph) AddNode(key int, rkey int, value interface{}) {
 	node := &gNode{
@@ -63,13 +84,6 @@ func (g *Graph) PrintGraph() {
 		}
 	}
 }
-
-type nodeDist struct {
-	nodeKey int
-	dist    float64
-}
-
-type nodeHeap []*nodeDist
 
 func (h nodeHeap) Len() int           { return len(h) }
 func (h nodeHeap) Less(i, j int) bool { return h[i].dist < h[j].dist }
@@ -177,18 +191,6 @@ func (g *Graph) UnionFind() int {
 	return count
 }
 
-type tNode struct {
-	Key   int
-	Value interface{}
-	Edges []*tEdge
-	Root  int
-}
-
-type tEdge struct {
-	ToKey  int
-	Weight float64
-}
-
 func (g *Graph) serialize() {
 	nodes := make([]tNode, len(g.Nodes))
 	for i, n := range g.Nodes {
@@ -273,4 +275,18 @@ func deserializeGraph() (*Graph, error) {
 	}
 
 	return graph, nil
+}
+
+func (g *Graph) getRandomPoints(n int) []int {
+	rand.Seed(time.Now().UnixNano())
+	points := make([]int, n)
+	dups := make(map[int]bool)
+	for i := 0; i < n; i++ {
+		if _, ok := dups[i]; ok {
+			continue
+		} else {
+			points[i] = rand.Intn(len(g.Nodes))
+		}
+	}
+	return points
 }
