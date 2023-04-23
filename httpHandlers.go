@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"log"
@@ -29,11 +30,28 @@ func performDijkstra(w http.ResponseWriter, r *http.Request, graph *Graph) {
 	// convert
 	root := graph.Nodes[fileIdInt].Root
 
-	elements, weight, error := graph.DijkstraShortestPath(fileIdInt, root)
-	if error != nil {
-		log.Printf("Error in DijkstraShortestPath: %v", error)
+	elements, weight, err := graph.DijkstraShortestPath(fileIdInt, root)
+	if err != nil {
+		log.Printf("Error in DijkstraShortestPath: %v", err)
+		w.Header().Set("Content-Type", "text/plain")
+		_, _ = w.Write([]byte("Shortest Path to Cluster Medoid Not Found for Given Business, Try selecting another business!"))
 	} else {
-		log.Printf("DijkstraShortestPath returned: %v, %v", elements, weight)
+		log.Printf("DijkstraShortestPath returned: %v", elements)
+		log.Printf("DijkstraShortestPath returned: %v", weight)
+		buf := bytes.Buffer{}
+		buf.WriteString("Shortest Path to Cluster Medoid\n")
+		for i, v := range elements {
+			// Temp Bussiness
+			t := LoadBusinessFromFile(strconv.Itoa(v))
+			buf.WriteString(t.Name)
+			if i == len(elements)-1 {
+				break
+			}
+			buf.WriteString(" ->\n")
+		}
+
+		w.Header().Set("Content-Type", "text/plain")
+		_, _ = w.Write(buf.Bytes())
 	}
 
 }
@@ -79,7 +97,7 @@ func returnRandomBusinessListJsonFromGraph(w http.ResponseWriter, r *http.Reques
 	log.Printf("returnRandomBusinessListJson")
 
 	// get 10 random elements from the graph
-	fileIdx := graph.getRandomPoints(50)
+	fileIdx := graph.getRandomNodes(50)
 
 	var businesses []Business
 	for _, v := range fileIdx {

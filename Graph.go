@@ -277,7 +277,7 @@ func deserializeGraph() (*Graph, error) {
 	return graph, nil
 }
 
-func (g *Graph) getRandomPoints(n int) []int {
+func (g *Graph) getRandomNodes(n int) []int {
 	rand.Seed(time.Now().UnixNano())
 	points := make([]int, n)
 	dups := make(map[int]bool)

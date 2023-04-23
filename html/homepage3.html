@@ -9,7 +9,7 @@
   </head>
   <body>
     <div style="font-size: 14px">
-      <h1>Yelp Dataset Recommendation Engine</h1>
+      <h1>Yelp Business Dataset Graph and Dijkstra's Shortest Path</h1>
       <p style="font-size: 14px">
         Select an item from the dropdown to select a business.  Upon selection a Dijkstra's algorithm will be executed to find the shortest path to the cluster medoid to which that business is part of.  The parameters of the graph
         are as follows - the nodes are the businesses in the cluster, the edges are the 4 closest geographic neighbours and the weighting is determined by a Jacard Set Similarity score.  Given these parameters it is possible
@@ -20,6 +20,7 @@
       <h2>
         Dijkstra's Shortest Path Results | Current Disjoint Sets: <span id="disjoint"></span>
       </h2>
+      <div id="results">
       </div>
       <h2>Calculation Process</h2>
       <h3>Application</h3>
@@ -118,16 +119,24 @@
 
       select.addEventListener("change", () => {
         let selectedOption = select.options[select.selectedIndex];
-        let businessId = selectedOption.querySelector(
-          '[name="file_id"]'
-        ).value;
+        let businessId = selectedOption.querySelector('[name="file_id"]').value;
         fetch(`/dijkstra?file_id=${businessId}`)
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data);
-      })
-      .catch((error) => console.error(error));
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.text();
+          })
+          .then(data => {
+            let results = document.getElementById("results");
+            results.innerHTML = "";
+            results.innerHTML = data;
+          })
+          .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+          });
       });
+
 
         reportDisjoints();
 
