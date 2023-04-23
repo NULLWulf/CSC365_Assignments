@@ -38,6 +38,16 @@ func performDijkstra(w http.ResponseWriter, r *http.Request, graph *Graph) {
 
 }
 
+func unionFind(w http.ResponseWriter, r *http.Request, graph *Graph) {
+	i := graph.UnionFind()
+	log.Printf("UnionFind returned: %v", i)
+	w.Header().Set("Content-Type", "text/plain")
+	_, err := w.Write([]byte(strconv.Itoa(i)))
+	if err != nil {
+		return
+	}
+}
+
 // Gets a random list of up 10 businesses and returns to front end
 // in this case the list is appended to a drop-down menu.  Used in Assignment 1 and 2
 func returnRandomBusinessListJson(writer http.ResponseWriter, request *http.Request, km *KmediodsDS) {
@@ -126,7 +136,7 @@ func getRelatableCluster(writer http.ResponseWriter, request *http.Request, kmed
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Content-Type", "text/plain")
 	writer.Write(jsonBytes)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)

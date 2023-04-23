@@ -41,6 +41,9 @@ func RUN2_2() {
 	router.GET("/dijkstra", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		performDijkstra(w, r, graph)
 	}) // Handler for random Businesses list
+	router.GET("/unionfind", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		unionFind(w, r, graph)
+	}) // Handler to get disjoint sets
 
 	log.Printf("Listening on port 7500")
 	err = http.ListenAndServe(":7500", router)

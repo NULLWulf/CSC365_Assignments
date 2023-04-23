@@ -18,7 +18,7 @@
       </p>
       <select id="businesses"></select>
       <h2>
-        Dijkstra's Shortest Path Results
+        Dijkstra's Shortest Path Results | Current Disjoint Sets: <span id="disjoint"></span>
       </h2>
       </div>
       <h2>Calculation Process</h2>
@@ -68,7 +68,6 @@
 
     <script>
       let select = document.getElementById("businesses");
-      let detailsBox = document.querySelector(".details-box");
       // function to get random business list and populate select element
       async function getBusinessList() {
         fetch("/random")
@@ -99,6 +98,24 @@
           .catch((error) => console.error(error));
       }
 
+      async function reportDisjoints() {
+        fetch("/unionfind")
+          .then((response) => {
+            if (response.ok) {
+              return response.text();
+            } else {
+              throw new Error("Network response was not ok.");
+            }
+          })
+          .then((data) => {
+            console.log("Union Find Results")
+            console.log(data);
+            let disjoint = document.getElementById("disjoint");
+            disjoint.innerText = data;
+          })
+          .catch((error) => console.error(error));
+      }
+
       select.addEventListener("change", () => {
         let selectedOption = select.options[select.selectedIndex];
         let businessId = selectedOption.querySelector(
@@ -111,6 +128,8 @@
       })
       .catch((error) => console.error(error));
       });
+
+        reportDisjoints();
 
   window.onload = getBusinessList;
 </script>
