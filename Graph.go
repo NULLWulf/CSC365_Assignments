@@ -45,6 +45,7 @@ type nodeDist struct {
 
 type nodeHeap []*nodeDist
 
+// AddNode adds a node to the graph
 func (g *Graph) AddNode(key int, rkey int, value interface{}) {
 	node := &gNode{
 		Key:   key,
@@ -61,6 +62,7 @@ func NewGraph() *Graph {
 	}
 }
 
+// AddEdge adds an edge to the graph
 func (g *Graph) AddEdge(from, to int, weight float64) {
 	fromNode, fromOK := g.Nodes[from]
 	toNode, toOK := g.Nodes[to]
@@ -114,8 +116,8 @@ func (g *Graph) DijkstraShortestPath(startKey, targetKey int) ([]int, float64, e
 
 	// Initialize distances to "infinity" for all nodes except the start node
 	for key := range g.Nodes {
-		if key == startKey {
-			distances[key] = 0
+		if key == startKey { // start node
+			distances[key] = 0 // distance to itself is 0
 		} else {
 			distances[key] = 1e18 // a large number representing "infinity"
 		}
@@ -125,19 +127,19 @@ func (g *Graph) DijkstraShortestPath(startKey, targetKey int) ([]int, float64, e
 	heap.Push(minHeap, &nodeDist{nodeKey: startKey, dist: 0})
 
 	// Dijkstra's algorithm
-	for minHeap.Len() > 0 {
-		current := heap.Pop(minHeap).(*nodeDist)
-		currentNode := g.Nodes[current.nodeKey]
+	for minHeap.Len() > 0 { // while there are nodes in the min-heap
+		current := heap.Pop(minHeap).(*nodeDist) // pop the node with the shortest distance from the min-heap
+		currentNode := g.Nodes[current.nodeKey]  // get the corresponding node
 
-		// Process each adjacent node
-		for _, edge := range currentNode.Edges {
-			newDist := distances[current.nodeKey] + edge.Weight
+		for _, edge := range currentNode.Edges { // Process each adjacent node
 
-			// If a shorter path is found, update the distance and previous node
-			if newDist < distances[edge.To.Key] {
-				distances[edge.To.Key] = newDist
-				prevNodes[edge.To.Key] = current.nodeKey
-				heap.Push(minHeap, &nodeDist{nodeKey: edge.To.Key, dist: newDist})
+			newDist := distances[current.nodeKey] + edge.Weight // Calculate the new distance
+
+			if newDist < distances[edge.To.Key] { // If a shorter path is found, update the distance and previous node
+
+				distances[edge.To.Key] = newDist                                   // update the distance
+				prevNodes[edge.To.Key] = current.nodeKey                           // update the previous node
+				heap.Push(minHeap, &nodeDist{nodeKey: edge.To.Key, dist: newDist}) // push the adjacent node to the min-heap
 			}
 		}
 	}
@@ -147,17 +149,17 @@ func (g *Graph) DijkstraShortestPath(startKey, targetKey int) ([]int, float64, e
 	}
 
 	// Reconstruct the shortest path from start node to target node
-	path := []int{}
-	nodeKey := targetKey
+	path := []int{}      // initialize an empty path
+	nodeKey := targetKey // start from the target node
 
-	for nodeKey != startKey {
-		path = append([]int{nodeKey}, path...)
-		nodeKey = prevNodes[nodeKey]
+	for nodeKey != startKey { // while we haven't reached the start node yet
+		path = append([]int{nodeKey}, path...) // prepend the current node to the path
+		nodeKey = prevNodes[nodeKey]           // move to the previous node
 	}
 
-	path = append([]int{startKey}, path...)
+	path = append([]int{startKey}, path...) // prepend the start node to the path
 
-	return path, distances[targetKey], nil
+	return path, distances[targetKey], nil // return the path and its distance
 }
 
 func (g *Graph) find(parent []int, i int) int {
@@ -167,30 +169,32 @@ func (g *Graph) find(parent []int, i int) int {
 	return g.find(parent, parent[i])
 }
 
+// UnionFind returns the number of connected components in the graph
 func (g *Graph) UnionFind() int {
 	n := len(g.Nodes)
 	parent := make([]int, n)
-	for i := 0; i < n; i++ {
+	for i := 0; i < n; i++ { // initialize parent array
 		parent[i] = -1
 	}
-	for _, node := range g.Nodes {
-		root1 := g.find(parent, node.Key)
-		for _, edge := range node.Edges {
-			root2 := g.find(parent, edge.To.Key)
-			if root1 != root2 {
-				parent[root1] = root2
+	for _, node := range g.Nodes { // iterate through all nodes
+		root1 := g.find(parent, node.Key) // find the root of the current node
+		for _, edge := range node.Edges { // iterate through all edges of the current node
+			root2 := g.find(parent, edge.To.Key) // find the root of the adjacent node
+			if root1 != root2 {                  // if the roots are different, union them
+				parent[root1] = root2 // set the parent of root1 as root2
 			}
 		}
 	}
-	count := 0
-	for i := 0; i < n; i++ {
-		if parent[i] == -1 {
+	count := 0               // initialize the number of roots
+	for i := 0; i < n; i++ { // count the number of roots
+		if parent[i] == -1 { // if the parent is -1, it is a root
 			count++
 		}
 	}
 	return count
 }
 
+// serializes the graph into a JSON file
 func (g *Graph) serialize() {
 	nodes := make([]tNode, len(g.Nodes))
 	for i, n := range g.Nodes {
@@ -229,6 +233,7 @@ func (g *Graph) serialize() {
 	log.Printf("node: %v\n", len(nodes))
 }
 
+// deserializeGraph reads the serialized graph from the file and returns a Graph object
 func deserializeGraph() (*Graph, error) {
 	// Read the contents of the serialized file
 	b, err := os.ReadFile("graph.json")
@@ -277,6 +282,7 @@ func deserializeGraph() (*Graph, error) {
 	return graph, nil
 }
 
+// getRandomNodes returns n random nodes from the graph
 func (g *Graph) getRandomNodes(n int) []int {
 	rand.Seed(time.Now().UnixNano())
 	points := make([]int, n)

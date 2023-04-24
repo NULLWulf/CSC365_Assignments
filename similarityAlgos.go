@@ -179,25 +179,25 @@ func haversineDistance(p1, p2 BusinessDataPoint) float32 {
 // jaccardSimilarity
 func jaccardSimilarity(b1, b2 *BusinessDataPoint) float64 {
 	set1 := make(map[string]bool)
-	for _, category := range b1.Categories {
+	for _, category := range b1.Categories { // b1.Categories is a slice of strings
 		set1[category] = true
 	}
 
 	set2 := make(map[string]bool)
-	for _, category := range b2.Categories {
+	for _, category := range b2.Categories { // b2.Categories is a slice of strings
 		set2[category] = true
 	}
 
-	intersection := 0
-	for category := range set1 {
-		if set2[category] {
-			intersection++
+	intersection := 0            // number of categories in common
+	for category := range set1 { // set1 is a map of strings
+		if set2[category] { // if category is in set2
+			intersection++ // increment intersection
 		}
 	}
 
-	union := len(set1) + len(set2) - intersection
+	union := len(set1) + len(set2) - intersection // union of set1 and set2
 
-	if union == 0 {
+	if union == 0 { // if union is 0, return 0.0
 		return 0.0
 	}
 
